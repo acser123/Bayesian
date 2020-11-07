@@ -71,19 +71,29 @@ list_node *create_new_list_node (const char *label)
 /* insert new node at front, returning pointer to head
  * to guage success/failure of addition.
  */
-list_node *insert_node_at_front (list *mylist_in, const char *data)
+list_node *insert_node_at_end (list *mylist_in, const char *data)
 {
     list_node *new_node = create_new_list_node(data);
 
-    //printf("*debug* insert_node_at_front(): data=%s\n", data);
-    if (!new_node)
+    printf("*debug* insert_node_at_end(): data=%s\n", data);
+    if (!new_node) {
         return NULL;
-
-    new_node->next = mylist_in->head;
-    mylist_in->head = new_node;
+    }
+    list_node *cursor = mylist_in->head;
+    while (cursor->next != NULL) {
+       cursor = cursor->next;
+      printf("*debug* insert_node_at_end(): going to the end of cursor\n");
+    }
+    printf("*debug* insert_node_at_end(): at the end of cursor\n");
+    cursor->next = new_node;
+    new_node->next = NULL;
+    //new_node->next = mylist_in->head;
+    //mylist_in->head = new_node;
+    
     mylist_in->size++;
 
-    return mylist_in->head;
+    return mylist_in->next;
+//    return mylist_in->head;
 }
 
 /* print_list - tweaked for formatted output */
@@ -139,8 +149,7 @@ list *create_new_list (list_node *list_node_h)
 //list *create_new_list (list *list_node_h)
 {
     list *new_list = NULL;
-
-    if (!list_node_h) {    /* validate data not NULL */
+if (!list_node_h) {    /* validate data not NULL */
         fputs ("error: list_node_in is NULL in create_new_list.\n", stderr);
         return NULL;
     }
@@ -172,8 +181,16 @@ list *insert_list_at_front (table *mytable_in, list *mylist_in)
     if (!new_list) {
        return NULL;
     }
-
-
+/*
+    list *cursor = mytable_in->head;
+    while (cursor->next != NULL) {
+      cursor = cursor->next;
+      printf("*debug* insert_list_at_end(): going to the end of cursor\n");
+    }
+    printf("*debug* insert_list_at_end(): at the end of cursor\n");
+    cursor->next = new_list;
+    new_list->next = NULL;
+*/
     new_list->next = mytable_in->head;
     mytable_in->head = new_list;
     mytable_in->size++;
@@ -242,8 +259,8 @@ char * tokenize(list *mylist, char *str) {
    char *pt;
    pt = strtok (str,SEP);
    while (pt != NULL) {
-    printf("*debug* tokenize(): insert_node_at_front() called with %s\n", pt);
-    insert_node_at_front (mylist, pt);         /* insert name */
+    printf("*debug* tokenize(): insert_node_at_end() called with %s\n", pt);
+    insert_node_at_end (mylist, pt);         /* insert name */
      pt = strtok (NULL, SEP);
    }   
    printf("*debug* tokenize(): print_list():"); print_list (mylist);
