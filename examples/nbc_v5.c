@@ -5,6 +5,7 @@
 
 #define SEP ","
 #define MAXN 512    /* if you need a constant, #define one (or more) */
+//list *mylist;
 
 /* Structue for a node in the list that stores the entire file we will read in */
 typedef struct list_node {
@@ -79,6 +80,8 @@ list_node *insert_node_at_end (list *mylist_in, const char *data)
     if (!new_node) {
         return NULL;
     }
+   
+/*
     list_node *cursor = mylist_in->head;
     while (cursor->next != NULL) {
        cursor = cursor->next;
@@ -87,16 +90,17 @@ list_node *insert_node_at_end (list *mylist_in, const char *data)
     printf("*debug* insert_node_at_end(): at the end of cursor\n");
     cursor->next = new_node;
     new_node->next = NULL;
-    //new_node->next = mylist_in->head;
-    //mylist_in->head = new_node;
+*/
+    new_node->next = mylist_in->head;
+    mylist_in->head = new_node;
     
     mylist_in->size++;
 
-   // return mylist_in->next;
+    //return mylist_in->next;
     return mylist_in->head;
 }
 
-/* print_list - tweaked for formatted output */
+/* pirint_list - tweaked for formatted output */
 void print_list (list *self)
 {
     list_node *current = self->head;
@@ -146,7 +150,6 @@ table *new_table(void) {
 
 /* create new dynamically allocated node, initialize all values */
 list *create_new_list (list_node *list_node_h)
-//list *create_new_list (list *list_node_h)
 {
     list *new_list = NULL;
 if (!list_node_h) {    /* validate data not NULL */
@@ -160,15 +163,16 @@ if (!list_node_h) {    /* validate data not NULL */
         return NULL;
     }
     /* allocate/validate storage for data */
-    if (!(new_list->head = malloc (sizeof (list_node_h) + 1))) {
+    if (!(new_list->head = malloc (sizeof *list_node_h) + 1)) {
         perror ("malloc-new_list->list");
         free (new_list);
         return NULL;
     }
+    //memcpy(new_list->head,  list_node_h, sizeof *list_node_h);  /* copy data to new_node->data */
     new_list->head = list_node_h;  /* copy data to new_node->data */
     new_list->next = NULL;          /* set next pointer NULL */
-
-    return new_list;    /* return pointer to new_node */
+    printf("*debug* create_new_list(): print(new_list): "); print_list(new_list);
+    return new_list;    /* return pointer to new_list */
 }
 
 /* insert new list at front returning pointer to head
@@ -181,19 +185,35 @@ list *insert_list_at_front (table *mytable_in, list *mylist_in)
     if (!new_list) {
        return NULL;
     }
+
 /*
-    list *cursor = mytable_in->head;
+    list *cursor = (list *) mytable_in->head;
+    //list *cursor = mytable_in->head;
+      printf("*debug* insert_list_at_front() cursor OK\n");
     while (cursor->next != NULL) {
+      printf("*debug* insert_list_at_front(): print_list():"); print_list (cursor->next);
       cursor = cursor->next;
-      printf("*debug* insert_list_at_end(): going to the end of cursor\n");
+      printf("*debug* insert_list_at_front(): going to the end of cursor\n");
     }
-    printf("*debug* insert_list_at_end(): at the end of cursor\n");
-    cursor->next = new_list;
+    printf("*debug* insert_list_at_front(): at the end of cursor\n");
+    cursor->next = new_list; 
+    mylist_in->next = new_list;
     new_list->next = NULL;
-*/
-    new_list->next = mytable_in->head;
     mytable_in->head = new_list;
     mytable_in->size++;
+ */
+
+/* */
+    printf("*debug* insert_list_at_front(): print_list(mylist_in):"); print_list (mylist_in);
+    //new_list = mylist_in;
+    new_list->next = mytable_in->head;
+    mytable_in->head = new_list;
+    //mylist_in->next = new_list;
+    mytable_in->size++;
+
+    printf("*debug* insert_list_at_front(): print_list(mytable_in->head):"); print_list (mytable_in->head);
+    printf("*debug* insert_list_at_front(): print_list(new_list):"); print_list (new_list);
+/**/
 
     return mytable_in->head;
 }
@@ -254,17 +274,21 @@ void empty_stdin (void)
 }
 
 
-char * tokenize(list *mylist, char *str) {
+list * tokenize(list *mylist, char *str) {
    //char str[] ="1,2,3,4,5";
+   printf("*debug* tokenize(): str=%s\n", str);
+//   list *mylist  = new_list();
    char *pt;
    pt = strtok (str,SEP);
+   printf("*debug* tokenize(): before tokenization print_list()\n"); print_list (mylist);
    while (pt != NULL) {
     printf("*debug* tokenize(): insert_node_at_end() called with %s\n", pt);
     insert_node_at_end (mylist, pt);         /* insert name */
      pt = strtok (NULL, SEP);
    }   
-   printf("*debug* tokenize(): print_list():"); print_list (mylist);
-   return pt;
+   printf("*debug* tokenize(): after tokenization print_list()\n"); print_list (mylist);
+   //return pt;
+   return mylist;
 } 
 
 int readfile(table *mytable, char *filename) {
@@ -273,7 +297,7 @@ int readfile(table *mytable, char *filename) {
     size_t len = 0;
     ssize_t read;
 
- //   list *mylist;
+    list *mylist;
  //   mylist = new_list();
  //   insert_list_at_front(mytable, mylist);
 
@@ -282,9 +306,8 @@ int readfile(table *mytable, char *filename) {
         exit(EXIT_FAILURE);
 
     while ((read = getline(&line, &len, fp)) != -1) {
-        list *mylist;
         mylist = new_list();
-        insert_list_at_front(mytable, mylist);
+        //insert_list_at_front(mytable, mylist);
 
         printf("*debug* readfile() before tokenization: print_list():"); print_list (mylist);
 
@@ -293,8 +316,19 @@ int readfile(table *mytable, char *filename) {
         line[strlen(line)-1] = '\0';  // Remove the last character of line \n
 
 
-        
-	tokenize(mytable->head, line);
+        list *newlist = new_list(); 
+
+
+     	newlist = tokenize(mylist, line);
+
+
+        //insert_list_at_front(mytable, mylist);
+        insert_list_at_front(mytable, newlist);
+
+        printf("*debug* readfile() after tokenization: print_list(newlist):"); print_list (newlist);
+        printf("*debug* readfile() after tokenization: print_list(mylist):"); print_list (mylist);
+        //insert_list_at_front(mytable, newlist);
+    printf("*debug* main(): print_table(mytable): "); print_table(mytable);
         printf("*debug* readfile(): line done\n\n");
         	
     }
@@ -312,8 +346,7 @@ int main (int argc, char *argv[]) {
     char *fn=argv[1]; 
     fn="training.txt";
 
-//list *mylist;
-table *mytable;
+    table *mytable;
 
     mytable = new_table();
     
@@ -323,7 +356,7 @@ table *mytable;
 
 //    printf ("\n\nfinal list (%zu nodes):", mytable->head->size);
 //    print_list (mytable->head);
-    print_table(mytable);
+    printf("*debug* main(): print_table(mytable): "); print_table(mytable);
 
     //free_list (mytable->head);     /* don't forget to free memory you allocate */
     //free_table (mytable);     /* don't forget to free memory you allocate */
