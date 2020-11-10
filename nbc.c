@@ -295,6 +295,7 @@ int main (int argc, char *argv[]) {
     char *fn=argv[1]; 
     fn="training.txt";
 
+    /* --- Begin of reading in the training data --- */ 
     table *mytable;
 
     mytable = new_table();
@@ -302,6 +303,23 @@ int main (int argc, char *argv[]) {
     readfile(mytable, fn);
 
     print_table(mytable);
+
+    /* End of reading in the training data */ 
+ 
+    /* --- Begin training --- */ 
+
+    /* Identify unique values of the last column, C  or Class */
+    /* Count unique values of the last column, count(Ci) */
+    /* Compute probability values of each of the last column's unique values, P(Ci) */
+
+    /* Identify unique values of each column, xi */
+    /* Count unique values of each column, count(xi) */
+    /* Compute probability values of each column's unique values, P(xi) */
+
+    /* Calculate probability values of P(xi|Ci)
+
+    /* End of training */ 
+
 
     free_table (mytable);     /* don't forget to free memory you allocate */
 
