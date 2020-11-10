@@ -3,3 +3,13 @@ Sunny,High,Weak,N
 Sunny,High,Strong,N
 Overcast,High,Weak,Y
 Rain,High,Weak,Y
+Rain,Normal,Weak,Y
+Rain,Normal,Strong,N
+Overcast,Normal,Strong,Y
+Sunny,High,Weak,N
+Sunny,Normal,Weak,Y
+Rain,Normal,Weak,Y
+Sunny,Normal,Strong,Y
+Overcast,High,Strong,Y
+Overcast,Normal,Weak,Y
+Rain,High,Strong,N

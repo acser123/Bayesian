@@ -9,6 +9,8 @@
 /* Structue for a node in the list that stores the entire file we will read in */
 typedef struct list_node {
    char *label;
+   int count; 
+   double P; // Probability
    struct list_node *next;
 } list_node;
 
@@ -208,7 +210,6 @@ void print_table (table *self)
    
     }
 
-    putchar ('\n');
 }
 
 
