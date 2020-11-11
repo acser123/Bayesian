@@ -80,7 +80,7 @@ list_node *create_new_list_node (const char *label)
      //   return NULL;
     //}
     new_node->count = 0;  /* initialize count to 0*/
-
+    new_node->P = 0;
 
     new_node->next = NULL;          /* set next pointer NULL */
 
@@ -116,9 +116,9 @@ void print_list (list *list_in)
     while (current != NULL)
     {
         if (current == list_in->head)
-            printf ("%s count=%d", current->label, current->count);
+            printf ("%s count=%d P=%f", current->label, current->count, current->P);
         else
-            printf (",%s count=%d", current->label, current->count);
+            printf (",%s count=%d P=%f", current->label, current->count, current->P);
         current = current->next;
     }
 
@@ -321,7 +321,7 @@ list * get_uniques(list *list_in) {
 
     int numrows=1;
     while (curr_node != NULL) {
-        printf("*debug* get_uniques(): evaluation curr_node->label=%s; numrows=%d\n", curr_node->label, numrows);
+       // printf("*debug* get_uniques(): evaluation curr_node->label=%s; numrows=%d\n", curr_node->label, numrows);
         numrows++;
         /* Go the beginning of the unique list */
         unique_list_node = unique_list_out->head;
@@ -337,7 +337,7 @@ list * get_uniques(list *list_in) {
             //    printf("*debug* get_uniques(): inner while(), equal unique_list_node->label=%s; curr_node->label=%s\n", unique_list_node->label, curr_node->label);
                 add_node = create_new_list_node(curr_node->label);
                 unique_list_node->count++;
-                printf("*debug* get_uniques(): inner while(), row=%d; equal unique_list_node->label=%s; curr_node->label=%s; unique_list_node->count=%d;\n", numrows, unique_list_node->label, curr_node->label, unique_list_node->count);
+                //printf("*debug* get_uniques(): inner while(), row=%d; equal unique_list_node->label=%s; curr_node->label=%s; unique_list_node->count=%d;\n", numrows, unique_list_node->label, curr_node->label, unique_list_node->count);
                 found = 1;
             } else {
 
@@ -348,7 +348,7 @@ list * get_uniques(list *list_in) {
         }
         //printf("*debug* get_uniques(): inner while() finished, found=%d, add_node->label=%s\n", found, add_node->label);
         if (found==0)  { 
-             //add_node->count = i;
+             add_node->count++;
              insert_node_at_end(unique_list_out, add_node);
         
             //printf("*debug* get_uniques(): inserted node at end of uniques add_node->label=%s\n", add_node->label);
@@ -362,6 +362,15 @@ list * get_uniques(list *list_in) {
     }
 
 
+   /* Calculate and populate probabilities */
+    list_node *current = unique_list_out->head; 
+    
+    while (current != NULL) {
+        //printf("*debug* get_uniques(): current->count=%d; numrows=%d\n", current->count, numrows); 
+        current->P = (current->count) / (double) numrows; 
+        //printf("*debug* get_uniques(): current->count=%d; numrows=%d; P=%f\n", current->count, numrows, current->count/ (double) numrows); 
+        current = current->next;
+    }
     return unique_list_out;
 }
 
@@ -452,7 +461,7 @@ int main (int argc, char *argv[]) {
     list *counts_list = new_list();
     counts_list = get_uniques(testcolumn);
     print_list(counts_list);
-/*
+
     testcolumn = retrieve_column(training_table, "Humidity");
     print_list(testcolumn);
     counts_list = new_list();
@@ -470,7 +479,7 @@ int main (int argc, char *argv[]) {
     counts_list = new_list();
     counts_list = get_uniques(testcolumn);
     print_list(counts_list);
-*/
+
 
     /* Read and analyze all training table values */
     table *parameter_table = new_table();
