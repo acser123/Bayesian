@@ -6,14 +6,12 @@
 #define SEP ","
 #define MAXN 512    /* if you need a constant, #define one (or more) */
 
-/* --- Begin of structure definitions --- */
 /* Structue for a node in the list that stores the entire file we will read in */
 typedef struct list_node {
    char *label;
    int count; 
    double P; // Probability
    struct list_node *next; // Horizontal pointer
-   struct list_node *next_v; // Vertical pointer to the node in the following line
 } list_node;
 
 /* Structure to hold the list */ 
@@ -28,8 +26,6 @@ typedef struct table {
    list *head;
    size_t size;
 } table;
-
-/* --- End of structure definitions --- */
 
 /* --- Begin of list functions --- */
 
@@ -192,8 +188,7 @@ void insert_list_at_end (table *training_table_in, list *mylist_in)
 }
 
 
-
-/* print_table - tweaked for formatted output */
+/* print_list - tweaked for formatted output */
 void print_table (table *table_in)
 {
     list *current = table_in->head;
@@ -224,90 +219,16 @@ void free_table (table *training_table)
     }
     free (training_table);
 }
-
 /* --- End of table functions --- */
 
-
-
-
-/* --- Begin of column functions --- */
-
-/* Create vertical pointers between a node on a list and the 
-respective node on the next list */
-void cross_link_nodes(table *table_in) {
-    list *curr_list_ptr = table_in->head;
-    while (curr_list_ptr != NULL) {
-        list *next_list_ptr = curr_list_ptr->next;
-        if (next_list_ptr != NULL) {
-            list_node *curr_node_ptr = curr_list_ptr->head;
-            list_node *below_node_ptr = next_list_ptr->head;
-            while (below_node_ptr!= NULL) {
-
-                /* Link to next line's respective node */
-                curr_node_ptr->next_v = below_node_ptr;          
-            //printf ("*debug* cross_link_nodes(): linking node %s to node %s\n", curr_node_ptr->label, below_node_ptr->label);
-
-                /* Advance both pointers */ 
-                curr_node_ptr = curr_node_ptr->next;
-                below_node_ptr = below_node_ptr->next;
-                 
-            }
-            
-        }
-        curr_list_ptr = curr_list_ptr->next;
-    }  
-}
-
-/* print_column */
-void print_column (table *table_in)
+/* you are responsible for the state of stdin when doing user input */
+void empty_stdin (void)
 {
+    int c = getchar();
 
-    /* Find the upper left hand list_node */
-    list *first_list = table_in->head;
-    list_node *column_node_ptr = first_list->head;
-
-    /* Print data column-wise using the next_v vertical pointer */ 
-    while(column_node_ptr != NULL) {
-       // printf ("*debug* print_column(): column_node_ptr->label = %s\n", column_node_ptr->label);
-        list_node *current_node = column_node_ptr;
-        while (current_node != NULL)
-        {
-            printf ("%s,", current_node->label);
-            current_node = current_node->next_v;
-        }
-        printf ("\n");
-        column_node_ptr = column_node_ptr->next;
-     } 
-     //putchar ('\n');
-  
+    while (c != '\n' && c != EOF)
+        c = getchar();
 }
-
-void get_unique_counts(list *list_in, table *table_in) {
-
-    list *current_list = table_in->head;
-    int i;
-    while (current_list != NULL)
-    {
-	i++;
-
-        list_node *current_node = current_list->head;
-
-        while (current_node != NULL) {
-            //printf ("%s,", current_node->label);
-            current_node = current_node->next;
-        }
-       // printf ("\n");
-
-        current_list = current_list->next;
-   
-    }
-}
-
-
-/* --- End of column functions --- */
-
-
-
 
 /* Tokenize a line to strings and put them into a list consisting of nodes */
 
@@ -365,6 +286,28 @@ int readfile(table *training_table, char *filename) {
 }
 
 
+/* --- Column functions --- */
+void get_unique_counts(list *list_in, table *table_in) {
+
+    list *current_list = table_in->head;
+    int i;
+    while (current_list != NULL)
+    {
+	i++;
+
+        list_node *current_node = current_list->head;
+
+        while (current_node != NULL) {
+            printf ("%s,", current_node->label);
+            current_node = current_node->next;
+        }
+        printf ("\n");
+
+        current_list = current_list->next;
+   
+    }
+}
+
 int main (int argc, char *argv[]) {
     char *fn=argv[1]; 
     fn="training.txt";
@@ -382,15 +325,12 @@ int main (int argc, char *argv[]) {
  
     /* --- Begin training --- */ 
 
-    /* Cross link nodes in the training table so we can walk it vertically as well*/
-    cross_link_nodes(training_table); 
-    print_column(training_table);
     /* Read and analyze all training table values */
     table *parameter_table = new_table();
     list *Ci = new_list();
     insert_list_at_end(parameter_table, Ci);
 
-    //get_unique_counts(Ci, training_table);
+    get_unique_counts(Ci, training_table);
 
     /* Identify unique values of the last column, C  or Class */
     /* Count unique values of the last column, count(Ci) */
