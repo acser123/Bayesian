@@ -9,24 +9,24 @@
 /* --- Begin of structure definitions --- */
 /* Structue for a node in the list that stores the entire file we will read in */
 typedef struct list_node {
-   char *label;
-   int count; 
-   double P; // Probability
-   struct list_node *next; // Horizontal pointer
-   struct list_node *next_v; // Vertical pointer to the node in the following line
+    char *label;
+    int count; 
+    double P; // Probability
+    struct list_node *next; // Horizontal pointer
+    struct list_node *next_v; // Vertical pointer to the node in the following line
 } list_node;
 
 /* Structure to hold the list */ 
 typedef struct list {
-   list_node *head;
-   struct list *next;
-   size_t size;
+    list_node *head;
+    struct list *next;
+    size_t size;
 } list;
 
 /* Structure to hold the table of lists */ 
 typedef struct table {
-   list *head;
-   size_t size;
+    list *head;
+    size_t size;
 } table;
 
 /* --- End of structure definitions --- */
@@ -35,14 +35,14 @@ typedef struct table {
 
 /* Create a dynamically allocated list */
 list *new_list(void) {
-   list *list_out = malloc (sizeof *list_out); /* create storage for list */
-   if (!list_out) {                         /* validate all allocations */
-      perror("malloc-new_list");
-      return NULL;
-   }
-   list_out->head = NULL;
-   list_out->size = 0;
-   return list_out;
+    list *list_out = malloc (sizeof *list_out); /* create storage for list */
+    if (!list_out) {                         /* validate all allocations */
+        perror("malloc-new_list");
+        return NULL;
+    }
+    list_out->head = NULL;
+    list_out->size = 0;
+    return list_out;
 }
 
 /* create new dynamically allocated node, initialize all values */
@@ -268,16 +268,17 @@ list * retrieve_column (table *table_in, char *header_in) {
                 insert_node_at_end(list_out, create_new_list_node(current_node->label));
                 current_node = current_node->next_v;
             }
-       //     printf ("\n");
         } 
+
         /* Move to the next column */
         column_node_ptr = column_node_ptr->next;
 
-     } 
-     //putchar ('\n');
-     return list_out; 
+    } 
+     
+    return list_out; 
 }
 
+/* Get unique values with counts and probabilities */
 list * get_uniques(list *list_in) {
 
     list *unique_list_out = new_list();
@@ -347,8 +348,8 @@ list * get_uniques(list *list_in) {
     /*  Step through unique_list_out */
     while (current != NULL) {
 
-        /* Calculate probability for each unique value */
-        current->P = (current->count) / (double) numrows; 
+        /* Calculate probability for each unique value, subtract one from number of rows since also counted the header row */
+        current->P = (current->count) / ((double) numrows - 1); 
 
         /* Step to calculate P for the next node */
         current = current->next;
@@ -357,6 +358,115 @@ list * get_uniques(list *list_in) {
     return unique_list_out;
 }
 
+/* Return a list (column) of uniques with probabilities and counts where header_name_in=header_criterion_in  and where the value is value_in*/
+
+list * get_uniques_with_criterion(table *table_in, const char *header_name_in, const char *field_value_in) {
+// TODO: need to bring in the header name that we want to analyze
+
+    /* We will advance this pointer */   
+    list *curr_list = table_in->head;
+    list_node *curr_node = curr_list->head;
+
+    int curr_column_count, crit_column_num;
+    while (curr_node != NULL) {
+        curr_column_count++;
+        if (strcmp(curr_node->label, header_name_in) == 0) {
+            crit_column_num = curr_column_count;
+        }
+        curr_node = curr_node->next;
+    }
+ 
+
+    list *unique_list_out = new_list();
+
+
+    /* The first node label is the header value and it is unique for sure so we initialize the unique list */
+
+// TODO: need to iterate to the header name we want to analyze
+    curr_node = curr_list->head;
+    list_node *unique_list_node = create_new_list_node(curr_node->label);
+    unique_list_node->count++;
+    insert_node_at_end(unique_list_out, unique_list_node);
+    
+    /* Step to the second item on the current node */
+    curr_list = curr_list->next;
+    //curr_node = curr_node->next; 
+
+    /* We already looked at the first row */
+    int numrows=1; 
+
+    /* Step through nodes of the list_in */
+    while (curr_node != NULL) {
+        /* Only process the line if header_name_in column field matches the field_value_in */
+
+        /* Step horizontally crit_column_num times to find the header_name_in vaalue */
+
+        list_node *node_ptr = curr_node;
+        int i=1;
+        while (node_ptr != NULL && i<crit_column_num ) {
+            i++;
+            node_ptr = node_ptr->next;
+        }
+        if(strcmp(field_value_in, node_ptr->label)==0) { 
+            
+            numrows++;
+
+            /* Go the beginning of the unique list */
+            unique_list_node = unique_list_out->head;
+            /* Clear flag */
+            int found=0;
+
+            /* We need to remember what we need to add to unique list */
+            list_node *add_node;
+
+            /* Step through unique list */
+            while (unique_list_node != NULL) { 
+
+                /* If unique list contains the current node, set found to 1 
+               so that we don't add it after having finished with the unique list */
+                if ((strcmp(unique_list_node->label, curr_node->label) == 0)) {
+
+                    add_node = create_new_list_node(curr_node->label);
+
+                    /* Need to increase the count of times we found this node */
+                    unique_list_node->count++;
+                    /* Set found flag so we are sure to not add this node to uniques */
+                    found = 1;
+
+                } else {
+                    /* Need to remember what we're adding below, otherwise we dump core below */ 
+                    add_node = create_new_list_node(curr_node->label);
+                }
+                unique_list_node = unique_list_node->next;
+             } /* while(unique_list_node != NULL) */
+
+             /* If we have not found the current on the unique list, then add the current node to the unique list */
+             if (found==0)  { 
+                 add_node->count++;
+                 insert_node_at_end(unique_list_out, add_node);
+                 found=1;
+             } 
+          } /* strcmp() */
+          /* Step to examine the next node */
+          curr_node = curr_node->next_v; 
+    }
+
+
+    /* Calculate and populate probabilities */
+    list_node *current = unique_list_out->head; 
+
+    /*  Step through unique_list_out */
+    while (current != NULL) {
+
+        /* Calculate probability for each unique value, subtract one from number of rows since also counted the header row */
+        current->P = (current->count) / ((double) numrows - 1); 
+
+        /* Step to calculate P for the next node */
+        current = current->next;
+    }
+
+    return unique_list_out;
+}
 
 /* --- End of column functions --- */
 
@@ -367,16 +477,16 @@ list * get_uniques(list *list_in) {
 
 list * tokenize(char *str) {
 
-   list *list_out = new_list();
-   char *pt;
-   list_node *node;
-   pt = strtok (str,SEP);
-   while (pt != NULL) {
-    node = create_new_list_node(pt);
-    insert_node_at_end (list_out, node);         /* insert name */
-    pt = strtok (NULL, SEP);
-   }   
-   return list_out; 
+    list *list_out = new_list();
+    char *pt;
+    list_node *node;
+    pt = strtok (str,SEP);
+    while (pt != NULL) {
+        node = create_new_list_node(pt);
+        insert_node_at_end (list_out, node);         /* insert name */
+        pt = strtok (NULL, SEP);
+    }   
+    return list_out; 
 } 
 
 /* Read file line by line and store it into a table consiting dynamic lists e */
@@ -422,9 +532,10 @@ int main (int argc, char *argv[]) {
     fn="training.txt";
 
     /* --- Begin of reading in the training data --- */ 
-    table *training_table;
+    table *training_table = new_table();
 
-    training_table = new_table();
+    /* Table to hold the P(xi|Ci) probabilities */
+    //table *table_PxiCi = new_table();
     
     training_table = readfile(fn);
 
@@ -436,13 +547,19 @@ int main (int argc, char *argv[]) {
 
     /* Cross link nodes in the training table so we can walk it vertically as well*/
     cross_link_nodes(training_table); 
-    list *testcolumn = new_list();
-    testcolumn = retrieve_column(training_table, "Outlook");
-    //print_list(testcolumn);
-    list *counts_list = new_list();
-    counts_list = get_uniques(testcolumn);
-    print_list(counts_list);
 
+
+    list *testcolumn = new_list();
+
+
+    //testcolumn = retrieve_column(training_table, "Outlook");
+    list *counts_list = new_list();
+
+    counts_list = get_uniques_with_criterion(training_table, "Play", "N");
+    print_list(counts_list);
+    //print_table(table_PxiCi);
+ 
+/*
     testcolumn = retrieve_column(training_table, "Humidity");
     //print_list(testcolumn);
     counts_list = new_list();
@@ -460,7 +577,7 @@ int main (int argc, char *argv[]) {
     counts_list = new_list();
     counts_list = get_uniques(testcolumn);
     print_list(counts_list);
-
+*/
 
     /* Read and analyze all training table values */
     table *parameter_table = new_table();
@@ -479,8 +596,8 @@ int main (int argc, char *argv[]) {
     /* Calculate probability values of P(xi|Ci) */
 
     /* End of training */ 
-
-
+    free_list(testcolumn);
+    free_list(counts_list);
     free_table (training_table);     /* don't forget to free memory you allocate */
 
     return 0;

@@ -361,7 +361,7 @@ list * get_uniques(list *list_in) {
 /* Return a list (column) of uniques with probabilities and counts where header_name_in=header_criterion_in  and where the value is value_in*/
 
 list * get_uniques_with_criterion(table *table_in, const char *header_name_in, const char *field_value_in) {
-// TODO: need to bring in the header name that we want to analyze
+
 
     /* We will advance this pointer */   
     list *curr_list = table_in->head;
@@ -375,14 +375,13 @@ list * get_uniques_with_criterion(table *table_in, const char *header_name_in, c
         }
         curr_node = curr_node->next;
     }
+    printf("*debug* get_uniques_with_criterion(): crit_column_num=%d\n", crit_column_num);
  
 
     list *unique_list_out = new_list();
 
 
     /* The first node label is the header value and it is unique for sure so we initialize the unique list */
-
-// TODO: need to iterate to the header name we want to analyze
     curr_node = curr_list->head;
     list_node *unique_list_node = create_new_list_node(curr_node->label);
     unique_list_node->count++;
@@ -403,19 +402,18 @@ list * get_uniques_with_criterion(table *table_in, const char *header_name_in, c
 
         list_node *node_ptr = curr_node;
         int i=1;
+        printf("*debug* get_uniques_with_criterion(): i=%d\n", i);
         while (node_ptr != NULL && i<crit_column_num ) {
             i++;
             node_ptr = node_ptr->next;
         }
+        printf("*debug* get_uniques_with_criterion(): strcmp: curr_node->label=%s; field_value_in=%s; node_ptr->label=%s\n", curr_node->label, field_value_in, node_ptr->label);
         if(strcmp(field_value_in, node_ptr->label)==0) { 
-            
             numrows++;
-
             /* Go the beginning of the unique list */
             unique_list_node = unique_list_out->head;
-            /* Clear flag */
-            int found=0;
 
+            int found=0;
             /* We need to remember what we need to add to unique list */
             list_node *add_node;
 
@@ -547,13 +545,12 @@ int main (int argc, char *argv[]) {
 
     /* Cross link nodes in the training table so we can walk it vertically as well*/
     cross_link_nodes(training_table); 
-
-
     list *testcolumn = new_list();
-
-
-    //testcolumn = retrieve_column(training_table, "Outlook");
+    testcolumn = retrieve_column(training_table, "Outlook");
+    //print_list(testcolumn);
     list *counts_list = new_list();
+    //counts_list = get_uniques(testcolumn);
+    //print_list(counts_list);
 
     counts_list = get_uniques_with_criterion(training_table, "Play", "N");
     print_list(counts_list);
