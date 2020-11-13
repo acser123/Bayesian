@@ -360,14 +360,13 @@ list * get_uniques(list *list_in) {
 
 /* Return a list (column) of uniques with probabilities and counts where header_name_in=header_criterion_in  and where the value is value_in*/
 
-list * get_uniques_with_criterion(table *table_in, const char *header_name_in, const char *field_value_in) {
-// TODO: need to bring in the header name that we want to analyze
+list * get_uniques_with_criterion(table *table_in, const char *examine_header_in, const char *header_name_in, const char *field_value_in) {
 
     /* We will advance this pointer */   
     list *curr_list = table_in->head;
     list_node *curr_node = curr_list->head;
 
-    int curr_column_count, crit_column_num;
+    int curr_column_count, crit_column_num, examine_column_num;
     while (curr_node != NULL) {
         curr_column_count++;
         if (strcmp(curr_node->label, header_name_in) == 0) {
@@ -382,15 +381,32 @@ list * get_uniques_with_criterion(table *table_in, const char *header_name_in, c
 
     /* The first node label is the header value and it is unique for sure so we initialize the unique list */
 
-// TODO: need to iterate to the header name we want to analyze
+
+    /* This is the columns where we want to find uniques, counts and P's for        only those rows where header_name_in=field_value_in */ 
     curr_node = curr_list->head;
+    curr_column_count=0;
+    while (curr_node != NULL) {
+        curr_column_count++;
+        if (strcmp(curr_node->label, examine_header_in) == 0) {
+            examine_column_num = curr_column_count;
+        }
+        curr_node = curr_node->next;
+    }
+    /* Set curr_node to the examine_column_num'th column */
+    curr_node = curr_list->head;
+    int j=1;
+    while (curr_node != NULL && j<examine_column_num ) {
+        j++;
+        curr_node = curr_node->next;
+    }
+
     list_node *unique_list_node = create_new_list_node(curr_node->label);
     unique_list_node->count++;
     insert_node_at_end(unique_list_out, unique_list_node);
     
     /* Step to the second item on the current node */
     curr_list = curr_list->next;
-    //curr_node = curr_node->next; 
+    curr_node = curr_node->next_v; 
 
     /* We already looked at the first row */
     int numrows=1; 
@@ -400,13 +416,13 @@ list * get_uniques_with_criterion(table *table_in, const char *header_name_in, c
         /* Only process the line if header_name_in column field matches the field_value_in */
 
         /* Step horizontally crit_column_num times to find the header_name_in vaalue */
-
-        list_node *node_ptr = curr_node;
+        list_node *node_ptr = curr_list->head;
         int i=1;
         while (node_ptr != NULL && i<crit_column_num ) {
             i++;
             node_ptr = node_ptr->next;
         }
+
         if(strcmp(field_value_in, node_ptr->label)==0) { 
             
             numrows++;
@@ -449,6 +465,7 @@ list * get_uniques_with_criterion(table *table_in, const char *header_name_in, c
           } /* strcmp() */
           /* Step to examine the next node */
           curr_node = curr_node->next_v; 
+          curr_list = curr_list->next;
     }
 
 
@@ -555,7 +572,7 @@ int main (int argc, char *argv[]) {
     //testcolumn = retrieve_column(training_table, "Outlook");
     list *counts_list = new_list();
 
-    counts_list = get_uniques_with_criterion(training_table, "Play", "N");
+    counts_list = get_uniques_with_criterion(training_table, "Wind", "Play", "Y");
     print_list(counts_list);
     //print_table(table_PxiCi);
  
