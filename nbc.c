@@ -536,7 +536,6 @@ list * get_uniques_with_criterion(table *table_in, const char *examine_header_in
         curr_node = curr_node->next;
     }
  
-    printf("*d guwd(): crit_column_num=%d\n", crit_column_num);
     list *unique_list_out = new_list();
 
 
@@ -743,7 +742,6 @@ folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
         list *curr2_list = training_table_in->head;
         list_node *header_ptr_node = curr2_list->head;
 
- //       list *counts_list = new_list();
 
         /* Get all headers */       
         while (header_ptr_node != NULL) {
@@ -751,45 +749,52 @@ folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
 
             list *counts_list = new_list();
 
-            printf("*d get_uniques_with_criterion: header_ptr_node->label=%s, Cname_in=%s, curr2_node->label=%s\n", header_ptr_node->label, Cname_in, curr2_node->label);
             counts_list = get_uniques_with_criterion(training_table_in, header_ptr_node->label, Cname_in, curr2_node->label);
 
-            printf("*d before insert_list_at_end Ci_table="); print_table(Ci_table);             
-            printf("\n*d before insert_list_at_end Ci_table printed\n");             
-            printf("*d counts_list="); print_list(counts_list);             
            
             insert_list_at_end(Ci_table, counts_list);
-            printf("*d insert_list_at_end done, Ci_table="); //print_table(Ci_table);             
-            printf("\n*d insert_list_at_end done, Ci_table printed\n");             
-            printf("*d Done with header=%s\n\n", header_ptr_node->label);
-            //free_list(counts_list);
             header_ptr_node = header_ptr_node->next; 
         }
 
         insert_table_at_end(folder_out, Ci_table);
-        printf("*d Done with Ci=%s\n\n", curr2_node->label);
+        //printf("*d Done with Ci=%s\n\n", curr2_node->label);
         curr2_node = curr2_node->next;
     } 
       
   
-///////////////////////
-    //list *curr_list = training_table_in->head;
-    //list *counts_list = new_list(); 
-    //list_node *curr_node = curr_list->head;
-    //table *counts_table = new_table(); 
-    //while (curr_node != NULL) {
-        //counts_list = get_uniques_with_criterion(table_in, curr_node->label, Cname_in, "Y");
-     //   insert_table_at_end(folder_out, counts_table);        
-        
-      //  curr_node = curr_node->next;
-   // }
-
     return folder_out;
 
 }
 
 
 /* --- End of global training functions --- */
+
+/* --- Begin of decisioning functions --- */
+table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table *decisioning_table_in) {
+    printf("*d gdt(): Entering\n");
+    table *table_out = new_table();
+
+    list *curr_list = decisioning_table_in->head;
+    while (curr_list != NULL) {
+        list_node *curr_node = curr_list->head;
+        while (curr_node != NULL) {
+            if(curr_node->next != NULL) {
+                /* Look up Pxi, Pxi|Ci and PCi values for this value */
+                printf("%s,", curr_node->label);
+            } else {
+                printf("%s", curr_node->label);
+            }
+            curr_node = curr_node->next;
+        }
+        printf("\n");
+        curr_list = curr_list->next;
+    }
+    //list *Pi_Ci = new_list();
+
+    return table_out;
+}
+
+/* --- End of decisioning functions --- */
 
 /* --- Begin file processing functions --- */
 
@@ -849,79 +854,64 @@ void readfile(table *table_in, char *filename) {
 /* --- End file processing functions --- */
 
 int main (int argc, char *argv[]) {
-    char *fn=argv[1]; 
-    fn="training.txt";
+    /* File name for the training data */
+    char *training_file_name=argv[1]; 
+    training_file_name="training.txt";
+    /* File name for the data that we have decision/classify */
+    char *decisioning_file_name=argv[2]; 
+    decisioning_file_name="decisioning.txt";
 
     /* --- Begin of reading in the training data --- */ 
     table *training_table = new_table();
-
-    /* Table to hold the P(xi|Ci) probabilities */
-    //table *table_PxiCi = new_table();
-    
-    readfile(training_table, fn);
-
-    //printf("*d main(): training_table="); print_table(training_table);
-
+    readfile(training_table, training_file_name);
     /* End of reading in the training data */ 
+
  
-    /* --- Begin training --- */ 
+    /* --- Begin model training calculations --- */ 
 
     /* Cross link nodes in the training table so we can walk it vertically as well*/
     cross_link_nodes(training_table); 
-    //printf("\n\n\n*******d main(): training_table="); print_table(training_table);
-    //printf("\n\n\n*******d main(): training_table print_table done.\n\n");
-
 
     /* Create, calculate and populate the Pxi table */
+    /* Identify unique values of each column, xi */
+    /* Count unique values of each column, count(xi) */
+    /* Compute probability values of each column's unique values, P(xi) */
     table *Pxi_table = new_table();
     create_Pxi_table(Pxi_table, training_table);
     add_label_to_table(Pxi_table, "Pxi_table");
 
-
-    list *counts_list = new_list();
-
-    counts_list = get_uniques_with_criterion(training_table, "Outlook", "Play", "Y");
-    print_list(counts_list);
-
-
-    //printf("print_table(Pxi_table)=\n"); print_table(Pxi_table); printf("\n");
- //   printf("*d main(): Pxi_table="); print_table(Pxi_table);
-  //  printf("\n");
-
+    /* Create, calculate and populate the Pxi table */
     folder *PxiCi_folder = new_folder();
-   
+  
+    /* Specify the class variable header value */ 
+    /* then for each header's each unique value */
+    /* calculate probability values of P(xi|Ci) */
     PxiCi_folder = create_PxiCi_folder(training_table, "Play");
-    printf("*d main(): PxiCi_folder="); print_folder(PxiCi_folder);
+    print_folder(PxiCi_folder);
     
-  //  list *testcolumn = new_list();
- //   testcolumn = retrieve_column(training_table, "Outlook");
-//    printf("*d main(): testcolumnr=\n"); print_list(testcolumn); printf("\n");
-    
-    //print_table(table_PxiCi);
-
-
- 
-
-    /* Read and analyze all training table values */
-   // table *parameter_table = new_table();
-   // list *Ci = new_list();
-   // insert_list_at_end(parameter_table, Ci);
-
-
-    /* Identify unique values of the last column, C  or Class */
-    /* Count unique values of the last column, count(Ci) */
-    /* Compute probability values of each of the last column's unique values, P(Ci) */
-
-    /* Identify unique values of each column, xi */
-    /* Count unique values of each column, count(xi) */
-    /* Compute probability values of each column's unique values, P(xi) */
-
-    /* Calculate probability values of P(xi|Ci) */
-
     /* End of training */ 
-    //free_list(testcolumn);
-    free_table (training_table);     /* don't forget to free memory you allocate */
-    free_table (Pxi_table);     /* don't forget to free memory you allocate */
+ 
+    /* Begin of decisioning/classification */
+
+    /* --- Begin of reading in the training data --- */ 
+    table *decisioning_table = new_table();
+    readfile(decisioning_table, decisioning_file_name);
+    add_label_to_table(Pxi_table, "decisioning_table");
+    print_table(decisioning_table);
+    /* End of reading in the training data */ 
+     
+    /* Begin of decisioning/classification */
+    table *decisioned_table = new_table();
+    decisioned_table = get_decisioned_table(Pxi_table, PxiCi_folder, decisioning_table);
+    add_label_to_table(decisioned_table, "decisioned_table");
+    print_table(decisioned_table);
+    /* End of decisioning/classification */
+
+    free_table (training_table);
+    free_table (Pxi_table);     
+    free_folder (PxiCi_folder);    
+    free_table (decisioning_table); 
+    free_table (decisioned_table); 
     printf("*d main() end.\n");
     return 0;
 }
