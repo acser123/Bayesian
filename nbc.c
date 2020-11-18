@@ -770,9 +770,53 @@ folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
 /* --- End of global training functions --- */
 
 /* --- Begin of decisioning functions --- */
+
+double lookup_Pxi_value(table *Pxi_table_in, char *header_in, char *xi_in) {
+    list *curr_list = Pxi_table_in->head;
+        list_node *curr_node = curr_list->head;
+    char *found_header=NULL; 
+//    printf("*d lookup_Pxi_value: Pxi_table_in=\n"); print_table(Pxi_table_in); printf("\n");
+    while (curr_list != NULL) {
+        while (curr_node != NULL) {
+            /* Found the list in Pxi_table_in that begins with header_in */
+            if (!strcmp(curr_node->label, header_in)) {
+		found_header=curr_node->label;
+                printf("*d lookup_Pxi_value(): header found, found_header=%s\n", found_header);
+		while (curr_node != NULL) {
+                    printf("*d lookup_Pxi_value(): looking at curr_node->label=%s\n", curr_node->label);
+		    if(!strcmp(curr_node->label, xi_in)){
+                    printf("*d lookup_Pxi_value(): found xi_in=%s  at curr_node->label=%s\n", xi_in, curr_node->label);
+	                return(curr_node->P);
+		    }
+			    
+		    curr_node = curr_node->next;
+		}
+	    } else {
+            curr_node = curr_node->next;
+	    }
+        }
+         
+      // if (!strcmp(curr_node->label, header_in)) {
+       //    break;
+       //}
+	curr_list = curr_list->next;
+    }
+
+    printf("*d lookup_Pxi_value(): header found_header=%s not found\n", found_header);
+
+    return 0;
+}
+
+/* Get a decisioned table with calculated values in it using the
+ * Naive Bayes Classifier method */
+
 table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table *decisioning_table_in) {
     printf("*d gdt(): Entering\n");
     table *table_out = new_table();
+
+
+    double Pxi = lookup_Pxi_value(Pxi_table_in, "Outlook1", "Overcast"); 
+    printf("*d gdt(): Pxi=%f\n", Pxi);
 
     list *curr_list = decisioning_table_in->head;
     while (curr_list != NULL) {
@@ -780,13 +824,13 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
         while (curr_node != NULL) {
             if(curr_node->next != NULL) {
                 /* Look up Pxi, Pxi|Ci and PCi values for this value */
-                printf("%s,", curr_node->label);
+                //printf("%s,", curr_node->label);
             } else {
-                printf("%s", curr_node->label);
+                //printf("%s", curr_node->label);
             }
             curr_node = curr_node->next;
         }
-        printf("\n");
+   //     printf("\n");
         curr_list = curr_list->next;
     }
     //list *Pi_Ci = new_list();
@@ -887,7 +931,7 @@ int main (int argc, char *argv[]) {
     /* then for each header's each unique value */
     /* calculate probability values of P(xi|Ci) */
     PxiCi_folder = create_PxiCi_folder(training_table, "Play");
-    print_folder(PxiCi_folder);
+    //print_folder(PxiCi_folder);
     
     /* End of training */ 
  
@@ -897,7 +941,7 @@ int main (int argc, char *argv[]) {
     table *decisioning_table = new_table();
     readfile(decisioning_table, decisioning_file_name);
     add_label_to_table(Pxi_table, "decisioning_table");
-    print_table(decisioning_table);
+    //print_table(decisioning_table);
     /* End of reading in the training data */ 
      
     /* Begin of decisioning/classification */
