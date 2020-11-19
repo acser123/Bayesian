@@ -821,30 +821,40 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
 
                 //double Pxi = lookup_Pxi_value(Pxi_table_in, "Play", "Y"); 
                 //printf("*d get_decisioned_table(): Pxi=%f\n", Pxi);
-
+		//
+    /* Copy the header row into header_list from decisioning_table_in */ 
+    list *header_list = new_list();
+    list_node *header_node_ptr = (decisioning_table_in->head)->head;
+    while (header_node_ptr != NULL) {
+        list_node *add_node; 
+	add_node = create_new_list_node(header_node_ptr->label);
+        insert_node_at_end(header_list, add_node);
+        header_node_ptr = header_node_ptr->next;
+    }
+    printf("*d get_decisioned_table() header_list=\n"); print_list(header_list); printf("\n");
     list *curr_list = decisioning_table_in->head;
     while (curr_list != NULL) {
-        list_node *curr_node = curr_list->head;
-	char *header_value = (curr_list->head)->label;
-	
-        while (curr_node != NULL) {
-	    char *field_value = curr_node->label;
-            if(curr_node->next != NULL ) {
+        list_node *curr_row_node = curr_list->head;
+	list_node *curr_head_node = header_list->head;
+        	
+        while (curr_row_node != NULL) {
+	    
+	    char *header_value = curr_head_node->label;
+	    char *field_value = curr_row_node->label;
+            //if(curr_node->next != NULL ) {
 		    // !@# bookmark: need to fix the header value
                 double Pxi = lookup_Pxi_value(Pxi_table_in, header_value, field_value); 
-                printf("*d get_decisioned_table(): header_value=%s, xi=%s, Pxi=%f\n", header_value, curr_node->label, Pxi);
+                printf("*d get_decisioned_table(): header_value=%s, xi=%s, Pxi=%f\n", header_value, field_value, Pxi);
                 /* Look up Pxi, Pxi|Ci and PCi values for this value */
                 //printf("%s,", curr_node->label);
-            } else {
-                //printf("%s", curr_node->label);
-            }
-            curr_node = curr_node->next;
+            curr_row_node = curr_row_node->next;
+            curr_head_node = curr_head_node->next;
         }
    //     printf("\n");
         curr_list = curr_list->next;
     }
     //list *Pi_Ci = new_list();
-
+    free_list(header_list);
     return table_out;
 }
 
@@ -950,6 +960,7 @@ int main (int argc, char *argv[]) {
     /* --- Begin of reading in the training data --- */ 
     table *decisioning_table = new_table();
     readfile(decisioning_table, decisioning_file_name);
+    cross_link_nodes(decisioning_table); 
     add_label_to_table(decisioning_table, "decisioning_table");
     //print_table(decisioning_table);
     /* End of reading in the training data */ 
