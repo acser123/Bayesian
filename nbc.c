@@ -822,9 +822,12 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
                 //double Pxi = lookup_Pxi_value(Pxi_table_in, "Play", "Y"); 
                 //printf("*d get_decisioned_table(): Pxi=%f\n", Pxi);
 		//
+		//
+    /* For each value of the C, Ci compute the following !@#*/
     /* Copy the header row into header_list from decisioning_table_in */ 
     list *header_list = new_list();
     list_node *header_node_ptr = (decisioning_table_in->head)->head;
+    insert_list_at_end(table_out, header_list);
     while (header_node_ptr != NULL) {
         list_node *add_node; 
 	add_node = create_new_list_node(header_node_ptr->label);
@@ -833,28 +836,37 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
     }
     printf("*d get_decisioned_table() header_list=\n"); print_list(header_list); printf("\n");
     list *curr_list = decisioning_table_in->head;
+
+    /* Walk through the entire decisioning table */
     while (curr_list != NULL) {
         list_node *curr_row_node = curr_list->head;
 	list_node *curr_head_node = header_list->head;
         	
+        list *curr_decisioned_list = new_list();
         while (curr_row_node != NULL) {
 	    
 	    char *header_value = curr_head_node->label;
 	    char *field_value = curr_row_node->label;
-            //if(curr_node->next != NULL ) {
-		    // !@# bookmark: need to fix the header value
+	    if(strcmp(header_value, field_value)) {
                 double Pxi = lookup_Pxi_value(Pxi_table_in, header_value, field_value); 
                 printf("*d get_decisioned_table(): header_value=%s, xi=%s, Pxi=%f\n", header_value, field_value, Pxi);
+		list_node *add_node = create_new_list_node(field_value);
+		/* Compute PxiCi/Pxi for each field_value */
+		add_node->P = 1/Pxi;
+		insert_node_at_end(curr_decisioned_list, add_node);
+	    }
                 /* Look up Pxi, Pxi|Ci and PCi values for this value */
                 //printf("%s,", curr_node->label);
             curr_row_node = curr_row_node->next;
             curr_head_node = curr_head_node->next;
         }
-   //     printf("\n");
+        printf("\n");
+	    
+	insert_list_at_end(table_out, curr_decisioned_list);
         curr_list = curr_list->next;
     }
     //list *Pi_Ci = new_list();
-    free_list(header_list);
+    //free_list(header_list);
     return table_out;
 }
 
