@@ -155,12 +155,12 @@ if (list_in != NULL ) {
     {      
             i++;
      //       printf ("\n*debug*: print_list(): entering while(), i=%d\n",i );
-    //    if (mycurrent == list_in->head)
-    //        printf ("%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
-    //    else
-   //         printf (",%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
-        printf("\n");
-        print_node(mycurrent);
+        if (mycurrent == list_in->head)
+            printf ("%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
+        else
+            printf (",%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
+    //    printf("\n");
+   //     print_node(mycurrent);
         mycurrent = mycurrent->next;
     }
 
@@ -773,19 +773,21 @@ folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
 
 double lookup_Pxi_value(table *Pxi_table_in, char *header_in, char *xi_in) {
     list *curr_list = Pxi_table_in->head;
-        list_node *curr_node = curr_list->head;
     char *found_header=NULL; 
-//    printf("*d lookup_Pxi_value: Pxi_table_in=\n"); print_table(Pxi_table_in); printf("\n");
+    //printf("*d lookup_Pxi_value(): entering, header_in=%s, xi_in=%s\n", header_in, xi_in);
     while (curr_list != NULL) {
+        list_node *curr_node = curr_list->head;
+        //printf("*d lookup_Pxi_value(): outer while(): (curr_list->head)->label=%s\n", (curr_list->head)->label);
         while (curr_node != NULL) {
+           // printf("*d lookup_Pxi_value(): inner while(): curr_node->label=%s\n", curr_node->label);
             /* Found the list in Pxi_table_in that begins with header_in */
             if (!strcmp(curr_node->label, header_in)) {
 		found_header=curr_node->label;
-                printf("*d lookup_Pxi_value(): header found, found_header=%s\n", found_header);
+                //printf("*d lookup_Pxi_value(): header found, found_header=%s\n", found_header);
 		while (curr_node != NULL) {
-                    printf("*d lookup_Pxi_value(): looking at curr_node->label=%s\n", curr_node->label);
+                    //printf("*d lookup_Pxi_value(): looking at curr_node->label=%s\n", curr_node->label);
 		    if(!strcmp(curr_node->label, xi_in)){
-                    printf("*d lookup_Pxi_value(): found xi_in=%s  at curr_node->label=%s\n", xi_in, curr_node->label);
+                    //printf("*d lookup_Pxi_value(): found xi_in=%s  at curr_node->label=%s\n", xi_in, curr_node->label);
 	                return(curr_node->P);
 		    }
 			    
@@ -802,8 +804,8 @@ double lookup_Pxi_value(table *Pxi_table_in, char *header_in, char *xi_in) {
 	curr_list = curr_list->next;
     }
 
-    printf("*d lookup_Pxi_value(): header found_header=%s not found\n", found_header);
-
+    //printf("*d lookup_Pxi_value(): header found_header=%s not found\n", found_header);
+    found_header=found_header;
     return 0;
 }
 
@@ -811,18 +813,26 @@ double lookup_Pxi_value(table *Pxi_table_in, char *header_in, char *xi_in) {
  * Naive Bayes Classifier method */
 
 table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table *decisioning_table_in) {
-    printf("*d gdt(): Entering\n");
+    printf("*d get_decisioned_table(): Entering\n");
     table *table_out = new_table();
 
+    printf("*d get_decisioned_table() decisioning_table_in=\n"); print_table(decisioning_table_in); printf("\n");
+    printf("*d get_decisioned_table() Pxi_table_in=\n"); print_table(Pxi_table_in); printf("\n");
 
-    double Pxi = lookup_Pxi_value(Pxi_table_in, "Outlook1", "Overcast"); 
-    printf("*d gdt(): Pxi=%f\n", Pxi);
+                //double Pxi = lookup_Pxi_value(Pxi_table_in, "Play", "Y"); 
+                //printf("*d get_decisioned_table(): Pxi=%f\n", Pxi);
 
     list *curr_list = decisioning_table_in->head;
     while (curr_list != NULL) {
         list_node *curr_node = curr_list->head;
+	char *header_value = (curr_list->head)->label;
+	
         while (curr_node != NULL) {
-            if(curr_node->next != NULL) {
+	    char *field_value = curr_node->label;
+            if(curr_node->next != NULL ) {
+		    // !@# bookmark: need to fix the header value
+                double Pxi = lookup_Pxi_value(Pxi_table_in, header_value, field_value); 
+                printf("*d get_decisioned_table(): header_value=%s, xi=%s, Pxi=%f\n", header_value, curr_node->label, Pxi);
                 /* Look up Pxi, Pxi|Ci and PCi values for this value */
                 //printf("%s,", curr_node->label);
             } else {
@@ -923,7 +933,7 @@ int main (int argc, char *argv[]) {
     table *Pxi_table = new_table();
     create_Pxi_table(Pxi_table, training_table);
     add_label_to_table(Pxi_table, "Pxi_table");
-
+    //print_table(Pxi_table);
     /* Create, calculate and populate the Pxi table */
     folder *PxiCi_folder = new_folder();
   
@@ -940,7 +950,7 @@ int main (int argc, char *argv[]) {
     /* --- Begin of reading in the training data --- */ 
     table *decisioning_table = new_table();
     readfile(decisioning_table, decisioning_file_name);
-    add_label_to_table(Pxi_table, "decisioning_table");
+    add_label_to_table(decisioning_table, "decisioning_table");
     //print_table(decisioning_table);
     /* End of reading in the training data */ 
      
