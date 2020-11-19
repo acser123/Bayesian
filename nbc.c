@@ -197,7 +197,7 @@ if (table_in != NULL) {
     while (current != NULL)
     {
     	print_list (current);
-    //    printf("*d print_table: print_list finished\n");  
+     //   printf("*d print_table: print_list finished\n");  
         current = current->next;
         i++;
     }
@@ -827,7 +827,7 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
     /* Copy the header row into header_list from decisioning_table_in */ 
     list *header_list = new_list();
     list_node *header_node_ptr = (decisioning_table_in->head)->head;
-    insert_list_at_end(table_out, header_list);
+    //insert_list_at_end(table_out, header_list);
     while (header_node_ptr != NULL) {
         list_node *add_node; 
 	add_node = create_new_list_node(header_node_ptr->label);
@@ -835,24 +835,29 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
         header_node_ptr = header_node_ptr->next;
     }
     printf("*d get_decisioned_table() header_list=\n"); print_list(header_list); printf("\n");
-    list *curr_list = decisioning_table_in->head;
 
-    /* Walk through the entire decisioning table */
+    insert_list_at_end(table_out, header_list);
+    list *curr_list = (decisioning_table_in->head)->next;
+
+    /* Walk through the entire decisioning table values only, but not headers, see above line */
     while (curr_list != NULL) {
         list_node *curr_row_node = curr_list->head;
 	list_node *curr_head_node = header_list->head;
         	
         list *curr_decisioned_list = new_list();
+	/* Walk through the curren row of values and find the Pxi value for each, then append them one by one to a list*/
         while (curr_row_node != NULL) {
 	    
 	    char *header_value = curr_head_node->label;
 	    char *field_value = curr_row_node->label;
+            printf("*d get_decisioned_table(): inner while(): header_value=%s, xi=%s\n", header_value, field_value);
 	    if(strcmp(header_value, field_value)) {
                 double Pxi = lookup_Pxi_value(Pxi_table_in, header_value, field_value); 
                 printf("*d get_decisioned_table(): header_value=%s, xi=%s, Pxi=%f\n", header_value, field_value, Pxi);
 		list_node *add_node = create_new_list_node(field_value);
 		/* Compute PxiCi/Pxi for each field_value */
-		add_node->P = 1/Pxi;
+		double PxiCi = 1;
+		add_node->P = PxiCi/Pxi;
 		insert_node_at_end(curr_decisioned_list, add_node);
 	    }
                 /* Look up Pxi, Pxi|Ci and PCi values for this value */
