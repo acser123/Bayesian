@@ -193,7 +193,7 @@ void free_list (list *mylist)
 /* print_table - tweaked for formatted output */
 void print_table (table *table_in)
 {
-    printf("*d print_table(): table_in->label=%s\n", table_in->label);
+   // printf("*d print_table(): table_in->label=%s\n", table_in->label);
    // printf("*d print_table(): *** Entering ***\n");
     int i=0;
 if (table_in != NULL) {
