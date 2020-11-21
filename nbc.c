@@ -809,6 +809,51 @@ double lookup_Pxi_value(table *Pxi_table_in, char *header_in, char *xi_in) {
     return 0;
 }
 
+double lookup_PxiCi_value(folder *PxiCi_folder_in, char *header_in, char *xi_in, char *Ci_in) {
+
+    table *curr_table = PxiCi_folder_in->head;
+	while (curr_table != NULL) {
+		if (!strcmp(curr_table->label, Ci_in)) {
+    list *curr_list = curr_table->head;
+    //printf("*d lookup_Pxi_value(): entering, header_in=%s, xi_in=%s\n", header_in, xi_in);
+    while (curr_list != NULL) {
+        list_node *curr_node = curr_list->head;
+        //printf("*d lookup_Pxi_value(): outer while(): (curr_list->head)->label=%s\n", (curr_list->head)->label);
+        while (curr_node != NULL) {
+           // printf("*d lookup_Pxi_value(): inner while(): curr_node->label=%s\n", curr_node->label);
+            /* Found the list in Pxi_table_in that begins with header_in */
+            if (!strcmp(curr_node->label, header_in)) {
+    //char *found_header=NULL; 
+//		found_header=curr_node->label;
+                //printf("*d lookup_Pxi_value(): header found, found_header=%s\n", found_header);
+		while (curr_node != NULL) {
+                    //printf("*d lookup_Pxi_value(): looking at curr_node->label=%s\n", curr_node->label);
+		    if(!strcmp(curr_node->label, xi_in)){
+                    //printf("*d lookup_Pxi_value(): found xi_in=%s  at curr_node->label=%s\n", xi_in, curr_node->label);
+	                return(curr_node->P);
+		    }
+			    
+		    curr_node = curr_node->next;
+		}
+	    } else {
+            curr_node = curr_node->next;
+	    }
+        }
+         
+      // if (!strcmp(curr_node->label, header_in)) {
+       //    break;
+       //}
+	curr_list = curr_list->next;
+    }
+		}       
+     curr_table = curr_table->next;
+	}
+    //printf("*d lookup_Pxi_value(): header found_header=%s not found\n", found_header);
+    //found_header=found_header;
+    return 0;
+}
+
+
 /* Get a decisioned table with calculated values in it using the
  * Naive Bayes Classifier method */
 
@@ -855,8 +900,10 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
                 double Pxi = lookup_Pxi_value(Pxi_table_in, header_value, field_value); 
                 printf("*d get_decisioned_table(): header_value=%s, xi=%s, Pxi=%f\n", header_value, field_value, Pxi);
 		list_node *add_node = create_new_list_node(field_value);
+		double PxiCi = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, "N");
+                printf("*d get_decisioned_table(): header_value=%s, xi=%s, PxiCi=%f\n", header_value, field_value, PxiCi);
+		/* Need to get PCi and do the whole thing for all Ci's !@#*/
 		/* Compute PxiCi/Pxi for each field_value */
-		double PxiCi = 1;
 		add_node->P = PxiCi/Pxi;
 		insert_node_at_end(curr_decisioned_list, add_node);
 	    }
