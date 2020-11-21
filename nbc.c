@@ -157,10 +157,12 @@ if (list_in != NULL ) {
      //       printf ("\n*debug*: print_list(): entering while(), i=%d\n",i );
         if (mycurrent == list_in->head)
             //printf ("%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
+            //printf ("%s P=%f", mycurrent->label, mycurrent->P);
             printf ("%s", mycurrent->label);
         else
-            printf (",%s", mycurrent->label);
             //printf (",%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
+            //printf (",%s P=%f", mycurrent->label, mycurrent->P);
+            printf (",%s", mycurrent->label);
     //    printf("\n");
    //     print_node(mycurrent);
         mycurrent = mycurrent->next;
@@ -935,17 +937,22 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
             //printf("*d get_decisioned_table(): (curr_list->head)->label=%s, bayes_C1=%f\n", (curr_list->head)->label, bayes_C1);
             //printf("*d get_decisioned_table(): (curr_list->head)->label=%s, bayes_C2=%f\n", (curr_list->head)->label, bayes_C2);
 	    char *prediction = "";
+	    double bayes_final=0.0;
 	    if (bayes_C1 > bayes_C2) {
                 prediction = "N";
+		bayes_final = bayes_C1;
 	    }
 	    if (bayes_C1 < bayes_C2) {
                 prediction = "Y";
+		bayes_final = bayes_C2;
 	    }
 	    if (bayes_C1 == bayes_C2) {
                 prediction = "Y/N";
+		bayes_final = bayes_C1;
 	    }
             //printf("*d get_decisioned_table(): (curr_list->head)->label=%s, prediction=%s\n", (curr_list->head)->label, prediction);
             list_node *prediction_node = create_new_list_node(prediction);
+	    prediction_node->P = bayes_final;
 	    insert_node_at_end(curr_decisioned_list, prediction_node);
 
         //printf("\n");
