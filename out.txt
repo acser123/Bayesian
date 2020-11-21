@@ -1,0 +1,74 @@
+*d get_decisioned_table(): Entering
+*d get_decisioned_table() decisioning_table_in=
+*d print_table(): table_in->label=decisioning_table
+Outlook count=0 P=0.000000,Humidity count=0 P=0.000000,Wind count=0 P=0.000000,Play count=0 P=0.000000
+Sunny count=0 P=0.000000,High count=0 P=0.000000,Weak count=0 P=0.000000,? count=0 P=0.000000
+Sunny count=0 P=0.000000,High count=0 P=0.000000,Strong count=0 P=0.000000,? count=0 P=0.000000
+Overcast count=0 P=0.000000,High count=0 P=0.000000,Weak count=0 P=0.000000,? count=0 P=0.000000
+Rain count=0 P=0.000000,High count=0 P=0.000000,Weak count=0 P=0.000000,? count=0 P=0.000000
+
+*d get_decisioned_table() Pxi_table_in=
+*d print_table(): table_in->label=Pxi_table
+Outlook count=1 P=0.071429,Sunny count=5 P=0.357143,Overcast count=4 P=0.285714,Rain count=5 P=0.357143
+Humidity count=1 P=0.071429,High count=7 P=0.500000,Normal count=7 P=0.500000
+Wind count=1 P=0.071429,Weak count=8 P=0.571429,Strong count=6 P=0.428571
+Play count=1 P=0.071429,N count=5 P=0.357143,Y count=9 P=0.642857
+
+*d get_decisioned_table() PxiCi_folder_in=
+*d print_table(): table_in->label=N
+Outlook count=1 P=0.200000,Sunny count=3 P=0.600000,Rain count=2 P=0.400000
+Humidity count=1 P=0.200000,High count=4 P=0.800000,Normal count=1 P=0.200000
+Wind count=1 P=0.200000,Weak count=2 P=0.400000,Strong count=3 P=0.600000
+Play count=1 P=0.200000,N count=5 P=1.000000
+*d print_table(): table_in->label=Y
+Outlook count=1 P=0.111111,Overcast count=4 P=0.444444,Rain count=3 P=0.333333,Sunny count=2 P=0.222222
+Humidity count=1 P=0.111111,High count=3 P=0.333333,Normal count=6 P=0.666667
+Wind count=1 P=0.111111,Weak count=6 P=0.666667,Strong count=3 P=0.333333
+Play count=1 P=0.111111,Y count=9 P=1.000000
+
+*d get_decisioned_table() header_list=
+Outlook count=0 P=0.000000,Humidity count=0 P=0.000000,Wind count=0 P=0.000000,Play count=0 P=0.000000
+
+*d get_decisioned_table(): header_value=Outlook, xi=Sunny, Pxi=0.357143
+*d get_decisioned_table(): header_value=Outlook, xi=Sunny, PxiCi=0.600000
+*d get_decisioned_table(): header_value=Humidity, xi=High, Pxi=0.500000
+*d get_decisioned_table(): header_value=Humidity, xi=High, PxiCi=0.800000
+*d get_decisioned_table(): header_value=Wind, xi=Weak, Pxi=0.571429
+*d get_decisioned_table(): header_value=Wind, xi=Weak, PxiCi=0.400000
+*d get_decisioned_table(): header_value=Play, xi=?, Pxi=0.000000
+*d get_decisioned_table(): header_value=Play, xi=?, PxiCi=0.000000
+
+*d get_decisioned_table(): header_value=Outlook, xi=Sunny, Pxi=0.357143
+*d get_decisioned_table(): header_value=Outlook, xi=Sunny, PxiCi=0.600000
+*d get_decisioned_table(): header_value=Humidity, xi=High, Pxi=0.500000
+*d get_decisioned_table(): header_value=Humidity, xi=High, PxiCi=0.800000
+*d get_decisioned_table(): header_value=Wind, xi=Strong, Pxi=0.428571
+*d get_decisioned_table(): header_value=Wind, xi=Strong, PxiCi=0.600000
+*d get_decisioned_table(): header_value=Play, xi=?, Pxi=0.000000
+*d get_decisioned_table(): header_value=Play, xi=?, PxiCi=0.000000
+
+*d get_decisioned_table(): header_value=Outlook, xi=Overcast, Pxi=0.285714
+*d get_decisioned_table(): header_value=Outlook, xi=Overcast, PxiCi=0.000000
+*d get_decisioned_table(): header_value=Humidity, xi=High, Pxi=0.500000
+*d get_decisioned_table(): header_value=Humidity, xi=High, PxiCi=0.800000
+*d get_decisioned_table(): header_value=Wind, xi=Weak, Pxi=0.571429
+*d get_decisioned_table(): header_value=Wind, xi=Weak, PxiCi=0.400000
+*d get_decisioned_table(): header_value=Play, xi=?, Pxi=0.000000
+*d get_decisioned_table(): header_value=Play, xi=?, PxiCi=0.000000
+
+*d get_decisioned_table(): header_value=Outlook, xi=Rain, Pxi=0.357143
+*d get_decisioned_table(): header_value=Outlook, xi=Rain, PxiCi=0.400000
+*d get_decisioned_table(): header_value=Humidity, xi=High, Pxi=0.500000
+*d get_decisioned_table(): header_value=Humidity, xi=High, PxiCi=0.800000
+*d get_decisioned_table(): header_value=Wind, xi=Weak, Pxi=0.571429
+*d get_decisioned_table(): header_value=Wind, xi=Weak, PxiCi=0.400000
+*d get_decisioned_table(): header_value=Play, xi=?, Pxi=0.000000
+*d get_decisioned_table(): header_value=Play, xi=?, PxiCi=0.000000
+
+*d print_table(): table_in->label=decisioned_table
+Outlook count=0 P=0.000000,Humidity count=0 P=0.000000,Wind count=0 P=0.000000,Play count=0 P=0.000000
+Sunny count=0 P=1.680000,High count=0 P=1.600000,Weak count=0 P=0.700000,? count=0 P=-nan
+Sunny count=0 P=1.680000,High count=0 P=1.600000,Strong count=0 P=1.400000,? count=0 P=-nan
+Overcast count=0 P=0.000000,High count=0 P=1.600000,Weak count=0 P=0.700000,? count=0 P=-nan
+Rain count=0 P=1.120000,High count=0 P=1.600000,Weak count=0 P=0.700000,? count=0 P=-nan
+*d main() end.

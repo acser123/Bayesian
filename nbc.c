@@ -156,9 +156,11 @@ if (list_in != NULL ) {
             i++;
      //       printf ("\n*debug*: print_list(): entering while(), i=%d\n",i );
         if (mycurrent == list_in->head)
-            printf ("%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
+            //printf ("%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
+            printf ("%s", mycurrent->label);
         else
-            printf (",%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
+            printf (",%s", mycurrent->label);
+            //printf (",%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
     //    printf("\n");
    //     print_node(mycurrent);
         mycurrent = mycurrent->next;
@@ -858,11 +860,12 @@ double lookup_PxiCi_value(folder *PxiCi_folder_in, char *header_in, char *xi_in,
  * Naive Bayes Classifier method */
 
 table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table *decisioning_table_in) {
-    printf("*d get_decisioned_table(): Entering\n");
+    //printf("*d get_decisioned_table(): Entering\n");
     table *table_out = new_table();
 
-    printf("*d get_decisioned_table() decisioning_table_in=\n"); print_table(decisioning_table_in); printf("\n");
-    printf("*d get_decisioned_table() Pxi_table_in=\n"); print_table(Pxi_table_in); printf("\n");
+    //printf("*d get_decisioned_table() decisioning_table_in=\n"); print_table(decisioning_table_in); printf("\n");
+    //printf("*d get_decisioned_table() Pxi_table_in=\n"); print_table(Pxi_table_in); printf("\n");
+    //printf("*d get_decisioned_table() PxiCi_folder_in=\n"); print_folder(PxiCi_folder_in); printf("\n");
 
                 //double Pxi = lookup_Pxi_value(Pxi_table_in, "Play", "Y"); 
                 //printf("*d get_decisioned_table(): Pxi=%f\n", Pxi);
@@ -879,13 +882,17 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
         insert_node_at_end(header_list, add_node);
         header_node_ptr = header_node_ptr->next;
     }
-    printf("*d get_decisioned_table() header_list=\n"); print_list(header_list); printf("\n");
+    //printf("*d get_decisioned_table() header_list=\n"); print_list(header_list); printf("\n");
 
     insert_list_at_end(table_out, header_list);
     list *curr_list = (decisioning_table_in->head)->next;
 
     /* Walk through the entire decisioning table values only, but not headers, see above line */
     while (curr_list != NULL) {
+	    /* Bayes statistic value for Play = N */
+	double bayes_C1 = 1.0;
+	    /* Bayes statistic value for Play = Y */
+	double bayes_C2 = 1.0;
         list_node *curr_row_node = curr_list->head;
 	list_node *curr_head_node = header_list->head;
         	
@@ -895,25 +902,54 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
 	    
 	    char *header_value = curr_head_node->label;
 	    char *field_value = curr_row_node->label;
-            printf("*d get_decisioned_table(): inner while(): header_value=%s, xi=%s\n", header_value, field_value);
+            //printf("*d get_decisioned_table(): inner while(): header_value=%s, xi=%s\n", header_value, field_value);
 	    if(strcmp(header_value, field_value)) {
                 double Pxi = lookup_Pxi_value(Pxi_table_in, header_value, field_value); 
-                printf("*d get_decisioned_table(): header_value=%s, xi=%s, Pxi=%f\n", header_value, field_value, Pxi);
+             //   printf("*d get_decisioned_table(): header_value=%s, xi=%s, Pxi=%f\n", header_value, field_value, Pxi);
 		list_node *add_node = create_new_list_node(field_value);
-		double PxiCi = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, "N");
-                printf("*d get_decisioned_table(): header_value=%s, xi=%s, PxiCi=%f\n", header_value, field_value, PxiCi);
+		double PxiCi_C1 = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, "N");
+		double PxiCi_C2 = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, "Y");
+              //  printf("*d get_decisioned_table(): header_value=%s, xi=%s, PxiCi_C1=%f\n", header_value, field_value, PxiCi_C1);
+                //printf("*d get_decisioned_table(): header_value=%s, xi=%s, PxiCi_C2=%f\n", header_value, field_value, PxiCi_C2);
 		/* Need to get PCi and do the whole thing for all Ci's !@#*/
 		/* Compute PxiCi/Pxi for each field_value */
-		add_node->P = PxiCi/Pxi;
+		//add_node->P = PxiCi/Pxi;
 		insert_node_at_end(curr_decisioned_list, add_node);
+
+		if (strcmp(header_value, "Play")){ 
+                    bayes_C1 = bayes_C1 * PxiCi_C1/Pxi;
+                    bayes_C2 = bayes_C2 * PxiCi_C2/Pxi;
+		}
 	    }
                 /* Look up Pxi, Pxi|Ci and PCi values for this value */
                 //printf("%s,", curr_node->label);
             curr_row_node = curr_row_node->next;
             curr_head_node = curr_head_node->next;
         }
-        printf("\n");
-	    
+                double PCi_C1 = lookup_Pxi_value(Pxi_table_in, "Play", "N"); 
+                double PCi_C2 = lookup_Pxi_value(Pxi_table_in, "Play", "Y"); 
+               // printf("*d get_decisioned_table(): Play=N, PCi=%f\n", PCi_C1);
+                //printf("*d get_decisioned_table(): Play=Y, PCi=%f\n", PCi_C2);
+		bayes_C1 = bayes_C1 * PCi_C1;
+		bayes_C2 = bayes_C2 * PCi_C2;
+            //printf("*d get_decisioned_table(): (curr_list->head)->label=%s, bayes_C1=%f\n", (curr_list->head)->label, bayes_C1);
+            //printf("*d get_decisioned_table(): (curr_list->head)->label=%s, bayes_C2=%f\n", (curr_list->head)->label, bayes_C2);
+	    char *prediction = "";
+	    if (bayes_C1 > bayes_C2) {
+                prediction = "N";
+	    }
+	    if (bayes_C1 < bayes_C2) {
+                prediction = "Y";
+	    }
+	    if (bayes_C1 == bayes_C2) {
+                prediction = "Y/N";
+	    }
+            //printf("*d get_decisioned_table(): (curr_list->head)->label=%s, prediction=%s\n", (curr_list->head)->label, prediction);
+            list_node *prediction_node = create_new_list_node(prediction);
+	    insert_node_at_end(curr_decisioned_list, prediction_node);
+
+        //printf("\n");
+	 
 	insert_list_at_end(table_out, curr_decisioned_list);
         curr_list = curr_list->next;
     }
@@ -1041,7 +1077,6 @@ int main (int argc, char *argv[]) {
     free_folder (PxiCi_folder);    
     free_table (decisioning_table); 
     free_table (decisioned_table); 
-    printf("*d main() end.\n");
     return 0;
 }
 
