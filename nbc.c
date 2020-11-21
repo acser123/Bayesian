@@ -884,6 +884,11 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
         insert_node_at_end(header_list, add_node);
         header_node_ptr = header_node_ptr->next;
     }
+    /* Add decisioned column header */
+    list_node *decisioned_value_node; 
+    decisioned_value_node = create_new_list_node("Decision");
+    insert_node_at_end(header_list, decisioned_value_node);
+
     //printf("*d get_decisioned_table() header_list=\n"); print_list(header_list); printf("\n");
 
     insert_list_at_end(table_out, header_list);
