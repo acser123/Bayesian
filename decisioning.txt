@@ -14,3 +14,4 @@ Overcast,High,Strong,Low,Y
 Overcast,Normal,Weak,High,Y
 Rain,High,Strong,High,N
 Overcast,High,Weak,High,?
+Rain,High,Weak,High,?

@@ -730,6 +730,7 @@ folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
     
 //printf("*d Ci_list: "); print_list(Ci_list);
 
+   
     /* For each non-header value on the Ci_list (e.g. "Y", or "N"), generate Ps for all headers' all values and store them into individual tables which you then link into a folder */
 
     /* Skip the header */
@@ -913,7 +914,9 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
 	    if(strcmp(header_value, field_value)) {
                 double Pxi = lookup_Pxi_value(Pxi_table_in, header_value, field_value); 
              //   printf("*d get_decisioned_table(): header_value=%s, xi=%s, Pxi=%f\n", header_value, field_value, Pxi);
+	        /* These can be improved to look at all values of the column where you see ?s in the decisioning table */
 		list_node *add_node = create_new_list_node(field_value);
+                /* Look up Pxi, Pxi|Ci and PCi values for this value */
 		double PxiCi_C1 = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, "N");
 		double PxiCi_C2 = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, "Y");
               //  printf("*d get_decisioned_table(): header_value=%s, xi=%s, PxiCi_C1=%f\n", header_value, field_value, PxiCi_C1);
@@ -923,12 +926,13 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
 		//add_node->P = PxiCi/Pxi;
 		insert_node_at_end(curr_decisioned_list, add_node);
 
+		/* Calculate the product of all PxiCi/Pxi for a row for both C1 and C2 (can be generalized in a loop if necessary, right now this works only with two (Y/N) Ci classes */
+
 		if (strcmp(header_value, "Play")){ 
                     bayes_C1 = bayes_C1 * PxiCi_C1/Pxi;
                     bayes_C2 = bayes_C2 * PxiCi_C2/Pxi;
 		}
 	    }
-                /* Look up Pxi, Pxi|Ci and PCi values for this value */
                 //printf("%s,", curr_node->label);
             curr_row_node = curr_row_node->next;
             curr_head_node = curr_head_node->next;
