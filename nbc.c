@@ -5,6 +5,7 @@
 #include <string.h>
 
 #define SEP ","
+#define DECISION_FOR "?"
 #define MAXN 512    /* if you need a constant, #define one (or more) */
 #define CLASS_NAME "Outlook" /* This is the variable or header column we are trying to forecast */
 
@@ -39,6 +40,7 @@ typedef struct folder {
     table *head;
     struct folder *next;
     size_t size;
+    char *label;
 } folder; 
 
 /* --- End of structure definitions --- */
@@ -305,6 +307,17 @@ void insert_table_at_end (folder *folder_in, table *table_in)
     }
 }
 
+
+void add_label_to_folder(folder *folder_in, const char *label){
+    /* allocate/validate storage for label */
+
+    if (!(folder_in->label = malloc (strlen (label) + 1))) {
+       perror ("malloc-folder_in->label");
+       free (folder_in);
+       return;
+    } 
+    strcpy(folder_in->label, label);
+}
 
 /* print_folder - tweaked for formatted output */
 void print_folder (folder *folder_in)
@@ -826,6 +839,37 @@ double lookup_PxiCi_value(folder *PxiCi_folder_in, char *header_in, char *xi_in,
 }
 
 
+/* Get class variable */
+char * get_class_variable(table *decisioning_table_in) {
+    char *class_variable_out = "";
+    list *curr_list = (decisioning_table_in->head)->next;
+    list_node *curr_node = curr_list->head;
+    /* Step through the whole second row of values in the decisioning table and find the position where the DECISION_FOR character (in our casea '?') is */
+    int i = 0;
+    int class_variable_position = 0;
+    while (curr_node != NULL) {
+	i++;
+	if(!strcmp(curr_node->label, DECISION_FOR)) {
+	   class_variable_position = i;  
+	}
+        curr_node = curr_node->next; 
+    }
+
+    /* Count the number of headers to class_variable_position times */
+    curr_list = decisioning_table_in->head;
+    curr_node = curr_list->head;
+    i = 0;
+    while (curr_node != NULL) {
+        i++;
+	if (i == class_variable_position) {
+             class_variable_out = curr_node->label;
+	}
+        curr_node = curr_node->next;
+    }
+    return class_variable_out;
+}
+
+
 /* Get a decisioned table with calculated values in it using the
  * Naive Bayes Classifier method */
 /* This is the worker function to generate the decisioned table based on the decisioning tables */
@@ -856,41 +900,75 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
     /* Start from the second row of the decisioning table */
     list *curr_list = (decisioning_table_in->head)->next;
 
-    /* Walk through the entire decisioning table values only, but not headers, see above line */
+    /* Walk through the entire decisioning table row by row,  values only, but not headers, see above line */
     while (curr_list != NULL) {
-	/* Initialize Bayes statistic value for Play = N */
-	double bayes_C1 = 1.0;
 
-	/* Initialize Bayes statistic value for Play = Y */
-	double bayes_C2 = 1.0;
+
+	/* Initialize Bayes statistic value  */
+	//double bayes_Ci = 1.0;
+	
 
         list_node *curr_row_node = curr_list->head;
 	list_node *curr_head_node = header_list->head;
         	
+	table *curr_table2 = PxiCi_folder_in->head;
+        /* Store bayes_Ci values into a list */
+        list *bayes_values_list = new_list();
+	while (curr_table2 != NULL) {
+	list_node *curr_node = create_new_list_node(curr_table2->label);
+	    curr_node->P = 1.0;
+	    insert_node_at_end(bayes_values_list, curr_node);
+	    curr_table2 = curr_table2->next;
+	}
+
         list *curr_decisioned_list = new_list();
 	/* Walk through the current row of values in decsioning table the  and find the Pxi value for each, then append them one by one to a list */
         while (curr_row_node != NULL) {
 	    
 	    char *header_value = curr_head_node->label;
 	    char *field_value = curr_row_node->label;
+
+
 	    /* Don't do this for the header row */
-	    if(strcmp(header_value, field_value)) {
+	    if(strcmp(header_value, field_value) && strcmp(field_value,DECISION_FOR)) {
                 double Pxi = lookup_Pxi_value(Pxi_table_in, header_value, field_value); 
 	        /* These can be improved to look at all values of the column where you see ?s in the decisioning table */
 		list_node *add_node = create_new_list_node(field_value);
 
-                /* Look up Pxi, Pxi|Ci and PCi values for this value */
-		double PxiCi_C1 = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, "N");
-		double PxiCi_C2 = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, "Y");
-
 		/* Compute PxiCi/Pxi for each field_value */
 		insert_node_at_end(curr_decisioned_list, add_node);
 
-		/* Calculate the product of all PxiCi/Pxi for a row for both C1 and C2 (can be generalized in a loop if necessary, right now this works only with two (Y/N) Ci classes */
 
-		if (strcmp(header_value, "Play")){ 
-                    bayes_C1 = bayes_C1 * PxiCi_C1/Pxi;
-                    bayes_C2 = bayes_C2 * PxiCi_C2/Pxi;
+                /* Get the name of the class */
+		char *Cname = PxiCi_folder_in->label;
+
+		/* For every table of distinct Cname value in the PxiCi folder  */
+		table *curr_table = PxiCi_folder_in->head;
+		list_node *curr_node = bayes_values_list->head;
+		while (curr_table != NULL) {
+
+		    
+                    /* Look up Pxi, Pxi|Ci and PCi values for this value */
+                    double PxiCi_Ci = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, curr_table->label);
+                    //printf("*d curr_table->label=%s, header_value=%s, field_value=%s, Cname=%s, Pxi=%f, PxiCi=%f\n", curr_table->label, header_value, field_value, Cname, Pxi, PxiCi_Ci);
+
+
+		    /* Calculate the product of all PxiCi/Pxi for a row for both C1 and C2 (can be generalized in a loop if necessary, right now this works only with two (Y/N) Ci classes */
+
+
+		    if (strcmp(header_value, Cname)){ 
+		    //printf("*d before * bayes_Ci=%f, PxiCi_Ci=%f, Pxi=%f\n", bayes_Ci, PxiCi_Ci, Pxi );
+                       // bayes_Ci = bayes_Ci * PxiCi_Ci/Pxi;
+                       // bayes_Ci = bayes_Ci * PxiCi_Ci/Pxi;
+	//		list_node *curr_node = create_new_list_node(field_value);
+                        curr_node->P = curr_node->P * PxiCi_Ci/Pxi;
+		    //printf("*d after * bayes_Ci=%f, PxiCi_Ci=%f, Pxi=%f\n", bayes_Ci, PxiCi_Ci, Pxi );
+	//		insert_node_at_end(bayes_values_list, curr_node);
+
+		        curr_node = curr_node->next;
+		    }
+
+		    curr_table = curr_table->next;
 		}
 	    }
                 //printf("%s,", curr_node->label);
@@ -898,40 +976,58 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
             curr_head_node = curr_head_node->next;
         }
 
+
+        //printf("*d before PCi bayes_values_list=\n"); print_list(bayes_values_list); printf("\n");
+
+	curr_table2 = PxiCi_folder_in->head;
+	list_node *curr_bayes_ptr = bayes_values_list->head;
+        /* Store multiplicative PCi_Ci  values into a list */
+	while (curr_table2 != NULL) {
+
+            double PCi_Ci = lookup_Pxi_value(Pxi_table_in, PxiCi_folder_in->label, curr_table2->label); 
+            //printf("*d curr_table2->label=%s, PCi_Ci=%f\n", curr_table2->label, PCi_Ci);
+	    curr_bayes_ptr->P = (curr_bayes_ptr->P) * PCi_Ci;
+	    curr_table2 = curr_table2->next;
+	    curr_bayes_ptr = curr_bayes_ptr->next;
+	}
+        //printf("*d after Pxi bayes_values_list=\n"); print_list(bayes_values_list); printf("\n");
 	    /* Hardcoded the output column and its values */
 	    /* This could be improved such that we read '?'s from the decisioning table and use that to find the output column's name, then use all values of the header name from the training table */
-            double PCi_C1 = lookup_Pxi_value(Pxi_table_in, "Play", "N"); 
-            double PCi_C2 = lookup_Pxi_value(Pxi_table_in, "Play", "Y"); 
 
 	    /* This is the actual Bayes product */
-	    bayes_C1 = bayes_C1 * PCi_C1;
-	    bayes_C2 = bayes_C2 * PCi_C2;
+//	    bayes_C2 = bayes_C2 * PCi_C2;
 
-	    char *prediction = "";
-	    double bayes_final=0.0;
 
-	    /* The Ci with the highest value wins and gets written into the Decision column of the decisioned table as prediction/decision */
-	    if (bayes_C1 > bayes_C2) {
-                prediction = "N";
-		bayes_final = bayes_C1;
-	    }
-	    if (bayes_C1 < bayes_C2) {
-                prediction = "Y";
-		bayes_final = bayes_C2;
-	    }
-	    if (bayes_C1 == bayes_C2) {
-                prediction = "Y/N";
-		bayes_final = bayes_C1;
-	    }
+	char *prediction = (bayes_values_list->head)->label;
+	double bayes_final=0.0;
 
-            list_node *prediction_node = create_new_list_node(prediction);
-	    prediction_node->P = bayes_final;
-	    insert_node_at_end(curr_decisioned_list, prediction_node);
+	/* Find maximum values of bayes_values_list node Ps */
+	curr_bayes_ptr = bayes_values_list->head;
+
+        /* Update bayes_Ci values */
+	while (curr_bayes_ptr != NULL) {
+        //printf("*d before bayes_final=%f\n", bayes_final);
+        //printf("*d before curr_bayes_ptr->P=%f\n", curr_bayes_ptr->P);
+            if (curr_bayes_ptr->P > bayes_final) {
+	        bayes_final = curr_bayes_ptr->P;
+                prediction = curr_bayes_ptr->label;    	     
+	    }
+        //printf("*d after bayes_final=%f\n", bayes_final);
+        //printf("*d after curr_bayes_ptr->P=%f\n", curr_bayes_ptr->P);
+        //printf("*d after prediction=%s\n", prediction);
+	    curr_bayes_ptr = curr_bayes_ptr->next;
+	}
+
+
+        list_node *prediction_node = create_new_list_node(prediction);
+        prediction_node->P = bayes_final;
+        insert_node_at_end(curr_decisioned_list, prediction_node);
 
 	 
 	insert_list_at_end(table_out, curr_decisioned_list);
         curr_list = curr_list->next;
-    }
+        //printf("*d ------------------------\n\n");
+    } /* End row processing while() */
     return table_out;
 }
 
@@ -1008,6 +1104,18 @@ int main (int argc, char *argv[]) {
 
     /* --- End of reading in the training data --- */ 
 
+    /* --- Begin of reading in the decisioning data --- */ 
+    table *decisioning_table = new_table();
+    /* Read the decisioning table file */
+    readfile(decisioning_table, decisioning_file_name);
+    add_label_to_table(decisioning_table, "decisioning_table");
+    /* End of reading in the training data */ 
+    
+    /* Determine the class variable name we need to decision for */
+    char *C_variable_name = get_class_variable(decisioning_table); 
+    //printf("*d main(): C_variable_name=%s\n", C_variable_name);
+    
+
     /* ----------------------------------------------- */
 
     /* --- Begin model training calculations --- */ 
@@ -1029,7 +1137,8 @@ int main (int argc, char *argv[]) {
     /* Specify the class variable header value */ 
     /* then for each header's each unique value */
     /* calculate probability values of P(xi|Ci) */
-    PxiCi_folder = create_PxiCi_folder(training_table, "Play");
+    PxiCi_folder = create_PxiCi_folder(training_table, C_variable_name);
+    add_label_to_folder(PxiCi_folder, C_variable_name);
     
     /* --- End of model training calculations --- */ 
 
@@ -1037,13 +1146,6 @@ int main (int argc, char *argv[]) {
 
     /* --- Begin of decisioning/classification --- */
 
-    /* --- Begin of reading in the training data --- */ 
-    table *decisioning_table = new_table();
-    /* Read the decisioning table file */
-    readfile(decisioning_table, decisioning_file_name);
-    add_label_to_table(decisioning_table, "decisioning_table");
-    /* End of reading in the training data */ 
-     
     /* Begin of decisioning/classification */
     table *decisioned_table = new_table();
     decisioned_table = get_decisioned_table(Pxi_table, PxiCi_folder, decisioning_table);
