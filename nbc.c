@@ -891,10 +891,8 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
         insert_node_at_end(header_list, add_node);
         header_node_ptr = header_node_ptr->next;
     }
-    /* Add a new column with a new header to decisioned output table */
-    //list_node *decisioned_value_node; 
-    //decisioned_value_node = create_new_list_node("Decision");
-    //insert_node_at_end(header_list, decisioned_value_node);
+
+    /* Add header column */
     insert_list_at_end(table_out, header_list);
 
     /* Start from the second row of the decisioning table */
@@ -958,12 +956,8 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
 
 		    if (strcmp(header_value, Cname)){ 
 		    //printf("*d before * bayes_Ci=%f, PxiCi_Ci=%f, Pxi=%f\n", bayes_Ci, PxiCi_Ci, Pxi );
-                       // bayes_Ci = bayes_Ci * PxiCi_Ci/Pxi;
-                       // bayes_Ci = bayes_Ci * PxiCi_Ci/Pxi;
-	//		list_node *curr_node = create_new_list_node(field_value);
                         curr_node->P = curr_node->P * PxiCi_Ci/Pxi;
 		    //printf("*d after * bayes_Ci=%f, PxiCi_Ci=%f, Pxi=%f\n", bayes_Ci, PxiCi_Ci, Pxi );
-	//		insert_node_at_end(bayes_values_list, curr_node);
 
 		        curr_node = curr_node->next;
 		    }
@@ -971,7 +965,6 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
 		    curr_table = curr_table->next;
 		}
 	    }
-                //printf("%s,", curr_node->label);
             curr_row_node = curr_row_node->next;
             curr_head_node = curr_head_node->next;
         }
@@ -991,14 +984,8 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
 	    curr_bayes_ptr = curr_bayes_ptr->next;
 	}
         //printf("*d after Pxi bayes_values_list=\n"); print_list(bayes_values_list); printf("\n");
-	    /* Hardcoded the output column and its values */
-	    /* This could be improved such that we read '?'s from the decisioning table and use that to find the output column's name, then use all values of the header name from the training table */
-
-	    /* This is the actual Bayes product */
-//	    bayes_C2 = bayes_C2 * PCi_C2;
 
 
-	//char *prediction = (bayes_values_list->head)->label;
 	char *prediction = "UNKNOWN";
 	double bayes_final=0.0;
 
@@ -1006,6 +993,7 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
 	curr_bayes_ptr = bayes_values_list->head;
 
         /* Update bayes_Ci values */
+
 	while (curr_bayes_ptr != NULL) {
         //printf("*d before bayes_final=%f\n", bayes_final);
         //printf("*d before curr_bayes_ptr->P=%f\n", curr_bayes_ptr->P);
