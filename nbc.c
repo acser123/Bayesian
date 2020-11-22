@@ -1081,10 +1081,10 @@ void readfile(table *table_in, char *filename) {
 int main (int argc, char *argv[]) {
     /* File name for the training data */
     char *training_file_name=argv[1]; 
-    training_file_name="training.txt";
+    //training_file_name="training.txt";
     /* File name for the data that we have decision/classify */
     char *decisioning_file_name=argv[2]; 
-    decisioning_file_name="decisioning.txt";
+    //decisioning_file_name="decisioning.txt";
 
     /* --- Begin of reading in the training data --- */ 
 
