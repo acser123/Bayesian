@@ -892,9 +892,9 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
         header_node_ptr = header_node_ptr->next;
     }
     /* Add a new column with a new header to decisioned output table */
-    list_node *decisioned_value_node; 
-    decisioned_value_node = create_new_list_node("Decision");
-    insert_node_at_end(header_list, decisioned_value_node);
+    //list_node *decisioned_value_node; 
+    //decisioned_value_node = create_new_list_node("Decision");
+    //insert_node_at_end(header_list, decisioned_value_node);
     insert_list_at_end(table_out, header_list);
 
     /* Start from the second row of the decisioning table */
@@ -998,7 +998,8 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
 //	    bayes_C2 = bayes_C2 * PCi_C2;
 
 
-	char *prediction = (bayes_values_list->head)->label;
+	//char *prediction = (bayes_values_list->head)->label;
+	char *prediction = "UNKNOWN";
 	double bayes_final=0.0;
 
 	/* Find maximum values of bayes_values_list node Ps */
