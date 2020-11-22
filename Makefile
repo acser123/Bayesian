@@ -1,5 +1,5 @@
 nbc: nbc.c
-	gcc -g -Wall -Wstrict-prototypes -Wshadow -o nbc nbc.c -lm
+	gcc -g -pg -Wall -Wstrict-prototypes -Wshadow -o nbc nbc.c -lm
 
 run: nbc.exe
 	nbc

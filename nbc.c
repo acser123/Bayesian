@@ -147,14 +147,12 @@ void print_node(list_node *node_in) {
 /* print_list - print nodes's values on a list */
 void print_list (list *list_in)
 {
-    //printf ("*debug*: print_list(): ** Entering **\n" );
 if (list_in != NULL ) {
     list_node *mycurrent = list_in->head;
     int i=0;
     while (mycurrent != NULL)
     {      
             i++;
-     //       printf ("\n*debug*: print_list(): entering while(), i=%d\n",i );
         if (mycurrent == list_in->head)
             //printf ("%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
             //printf ("%s P=%f", mycurrent->label, mycurrent->P);
@@ -163,8 +161,7 @@ if (list_in != NULL ) {
             //printf (",%s count=%d P=%f", mycurrent->label, mycurrent->count, mycurrent->P);
             //printf (",%s P=%f", mycurrent->label, mycurrent->P);
             printf (",%s", mycurrent->label);
-    //    printf("\n");
-   //     print_node(mycurrent);
+            //print_node(mycurrent);
         mycurrent = mycurrent->next;
     }
 
@@ -193,20 +190,14 @@ void free_list (list *mylist)
 /* print_table - tweaked for formatted output */
 void print_table (table *table_in)
 {
-   // printf("*d print_table(): table_in->label=%s\n", table_in->label);
-   // printf("*d print_table(): *** Entering ***\n");
-    int i=0;
-if (table_in != NULL) {
-    list *current = table_in->head;
-    while (current != NULL)
-    {
-    	print_list (current);
-     //   printf("*d print_table: print_list finished\n");  
-        current = current->next;
-        i++;
+    if (table_in != NULL) {
+        list *current = table_in->head;
+        while (current != NULL)
+        {
+    	    print_list (current);
+            current = current->next;
+        }
     }
-}
-     //   printf("*d print_table: print_table finished\n");  
 }
 
 /* Create a dynamically allocated table */
@@ -217,7 +208,6 @@ table *new_table(void) {
       return NULL;
    }
    table_out->head = NULL;
-   //table_out->label = ""; 
    table_out->size = 0;
    return table_out;
 }
@@ -253,6 +243,7 @@ void insert_list_at_end (table *table_in, list *mylist_in) {
             }
 
             current->next = mylist_in;
+	    /* Make sure to terminate the list, otherwise printing coredumps */
             mylist_in->next = NULL;
         }
     }
@@ -267,7 +258,6 @@ void free_table (table *table_in)
         current = current->next;
         free_list (victim);
     }
-    //free (table_in->label);
     free (table_in);
 }
 
@@ -391,13 +381,13 @@ void cross_link_nodes(table *table_in) {
     list_node *curr_node_ptr = curr_list_ptr->head;
 
     while( curr_node_ptr != NULL) {
-       /* terminate the rows' next_v's with NULLs */
+       /* terminate the last rows' next_v's with NULLs */
        curr_node_ptr->next_v = NULL; 
        curr_node_ptr  = curr_node_ptr->next;
     }
 }
 
-/* retrieve_column retrieve the column that has header_in */
+/* retrieve_column retrieve the column whose header (first row) matches header_in */
 list * retrieve_column (table *table_in, const char *header_in) {
     /* Create the return list */
     list *list_out = new_list();
@@ -410,12 +400,11 @@ list * retrieve_column (table *table_in, const char *header_in) {
 
     /* Print data column-wise using the next_v vertical pointer that matches the header_in */ 
     while(column_node_ptr != NULL) {
+
         if( !strcmp(column_node_ptr->label, header_in)) {
-            //printf("*d retrieve_column(): strcmp header_in=%s\n", header_in);
             list_node *current_node = column_node_ptr;
+
             while (current_node != NULL) {
-                //printf("*d retrieve_column(): strcmp current_node->label=%s\n", current_node->label);
-                //print_node(current_node);
                 
   
 		/* Need to create a new node to insert, can't insert current_node directly */
@@ -431,16 +420,10 @@ list * retrieve_column (table *table_in, const char *header_in) {
 
     } 
 
-    //list_out = list_tmp; 
-   //printf("\n\n*d retrieve_column(): about to return with list_tmp="); print_list(list_tmp); printf("\n");
-   //printf("\n\n*d retrieve_column(): about to return with list_out="); print_list(list_out); printf("\n");
-   //printf("*d retrieve_column(): done\n\n");
-
-    //free_list(list_tmp);
     return list_out; 
 }
 
-/* Get unique values with counts and probabilities */
+/* Get unique values of values from a list with counts and probabilities */
 list * get_uniques(list *list_in) {
 
     list *unique_list_out = new_list();
@@ -523,6 +506,7 @@ list * get_uniques(list *list_in) {
 
 
 /* Return a list (column) of uniques with probabilities and counts where header_name_in=header_criterion_in  and where the value is field_value_in*/
+/* This function follows the same logic as get_uniques() */
 
 list * get_uniques_with_criterion(table *table_in, const char *examine_header_in, const char *header_name_in, const char *field_value_in) {
 
@@ -577,6 +561,7 @@ list * get_uniques_with_criterion(table *table_in, const char *examine_header_in
 
     /* Step through nodes of the list_in */
     while (curr_node != NULL) {
+
         /* Only process the line if header_name_in column field matches the field_value_in */
 
         /* Step horizontally crit_column_num times to find the header_name_in vaalue */
@@ -586,7 +571,7 @@ list * get_uniques_with_criterion(table *table_in, const char *examine_header_in
             i++;
             node_ptr = node_ptr->next;
         }
-
+        /* Found it */
         if(strcmp(field_value_in, node_ptr->label)==0) { 
             
             numrows++;
@@ -640,6 +625,7 @@ list * get_uniques_with_criterion(table *table_in, const char *examine_header_in
     while (current != NULL) {
 
         /* Calculate probability for each unique value, subtract one from number of rows since also counted the header row */
+	/* Need to convert numrows to double, otherwise the result is incorrect */
         current->P = (current->count) / ((double) numrows - 1); 
 
         /* Step to calculate P for the next node */
@@ -654,73 +640,58 @@ list * get_uniques_with_criterion(table *table_in, const char *examine_header_in
 /* --- Begin of global training functions --- */
 
 /* Create table of Pxi values */
+/* This is a table of counts and probabilities of each unique value in each column of the training table */
 void create_Pxi_table(table *table_out, table *table_in){
-    //table *table_out; 
-    //table *table_out2 = new_table();
-    //table *table_out = new_table();
-    //table_out->head=NULL; 
-    //table_out2->head=NULL; 
 
     list *curr_list = table_in->head;
-    
     list_node *curr_node = curr_list->head;
-    
-
-
-    //list *curr_column;
     
     while (curr_node != NULL) {
 
-       // printf("*d create_Pxi_table(): before retrieve_column with curr_node->label=%s\n", curr_node->label);
-        //printf("*d create_Pxi_table(): before retrieve_column, result curr_column=\n"); print_list(curr_column); printf("\n");
-    list *curr_column =  new_list();
+        list *curr_column =  new_list();
         curr_column = retrieve_column(table_in, curr_node->label);
-        //printf("*d create_Pxi_table(): after retrieve_column, result curr_column=\n"); print_list(curr_column); printf("Done print_list\n");
         list *counts_list = new_list();
+
+	/* Find out the uniques values from the column */
         counts_list = get_uniques(curr_column);
-        //printf("*d create_Pxi_table(): counts_list=\n"); print_list(counts_list); printf("\n");
-        //printf("*d create_Pxi_table(): before insert_list_at_end, table_out=\n"); print_table(table_out); printf("\n");
-        //insert_list_at_end(table_out, curr_column);        
+
         insert_list_at_end(table_out, counts_list);        
         curr_node = curr_node->next;
-        //free_list(counts_list);     
-        //free_list(curr_column);     
     }
-
-    //return table_out2;
-    
 }
 
-/*  Create folder of tables of PxiCi values, i.e. probabilities of Pxi when Ci is of a value for each value of C */
+/*  Create folder of tables of PxiCi values, i.e. probabilities of each unique xi (denoted Pxi) when Ci is of a value for each value of C */
+/* For example, calculate counts and probabilities for each unique value of Outlook for only those rows where Play=Y */
 folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
     folder *folder_out = new_folder();
 
 
 /* 
-  Find out unique values for Cname_in
-  For each unique value of Ci of Cname_in 
+   Pseudocode:
+
+   Find out unique values for Cname_in
+   For each unique value of Ci of Cname_in 
     Generate a table of Ps for each Xi value for each X
     Add table to the folder
   Return the folder 
 */
 
-    //list *Ci_list = new_list();
-    
+   
+    /* Go row by row of the training_table_in */ 
     list *curr_list = training_table_in->head;
     list_node *curr_node = curr_list->head;
     list *Ci_list = new_list();
-
+    
     while (curr_node != NULL) {
+
         /* When we find Cname in in the headers, perform the whole sequence of creating uniques and then creating a table of Ps */
         if(!strcmp(curr_node->label, Cname_in)) {
-            //printf("*d curr_node->label=%s\n", curr_node->label);
 
             /* Get the column for Cname_in */
             list *C_list = new_list();
             C_list = retrieve_column(training_table_in, Cname_in);
 
             /* Get unique values on C_list */
-            //list *Ci_list = new_list();
             Ci_list = get_uniques(C_list);
 
         }
@@ -728,7 +699,6 @@ folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
     }
 
     
-//printf("*d Ci_list: "); print_list(Ci_list);
 
    
     /* For each non-header value on the Ci_list (e.g. "Y", or "N"), generate Ps for all headers' all values and store them into individual tables which you then link into a folder */
@@ -736,7 +706,6 @@ folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
     /* Skip the header */
    
     list_node *curr2_node = (Ci_list->head)->next;
-//    list_node *curr2_node = (Ci_list->head);
 
     while (curr2_node != NULL) {
         /* Table to hold the values for all Ci */
@@ -751,7 +720,6 @@ folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
         /* Get all headers */       
         while (header_ptr_node != NULL) {
              
-
             list *counts_list = new_list();
 
             counts_list = get_uniques_with_criterion(training_table_in, header_ptr_node->label, Cname_in, curr2_node->label);
@@ -762,7 +730,6 @@ folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
         }
 
         insert_table_at_end(folder_out, Ci_table);
-        //printf("*d Done with Ci=%s\n\n", curr2_node->label);
         curr2_node = curr2_node->next;
     } 
       
@@ -776,23 +743,25 @@ folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
 
 /* --- Begin of decisioning functions --- */
 
+/* From the Pxi table, for header_in column for value xi_in, get the P probability value we calculated when we built the Pxi_table_in */
 double lookup_Pxi_value(table *Pxi_table_in, char *header_in, char *xi_in) {
     list *curr_list = Pxi_table_in->head;
     char *found_header=NULL; 
-    //printf("*d lookup_Pxi_value(): entering, header_in=%s, xi_in=%s\n", header_in, xi_in);
+    /* Step through the rows of Pxi_table_in */
     while (curr_list != NULL) {
+
         list_node *curr_node = curr_list->head;
-        //printf("*d lookup_Pxi_value(): outer while(): (curr_list->head)->label=%s\n", (curr_list->head)->label);
+
+	/* Step through each column's value */
         while (curr_node != NULL) {
-           // printf("*d lookup_Pxi_value(): inner while(): curr_node->label=%s\n", curr_node->label);
+
             /* Found the list in Pxi_table_in that begins with header_in */
             if (!strcmp(curr_node->label, header_in)) {
 		found_header=curr_node->label;
-                //printf("*d lookup_Pxi_value(): header found, found_header=%s\n", found_header);
+                
+		/* Look for xi_in and if found returnn the P value */
 		while (curr_node != NULL) {
-                    //printf("*d lookup_Pxi_value(): looking at curr_node->label=%s\n", curr_node->label);
 		    if(!strcmp(curr_node->label, xi_in)){
-                    //printf("*d lookup_Pxi_value(): found xi_in=%s  at curr_node->label=%s\n", xi_in, curr_node->label);
 	                return(curr_node->P);
 		    }
 			    
@@ -801,129 +770,120 @@ double lookup_Pxi_value(table *Pxi_table_in, char *header_in, char *xi_in) {
 	    } else {
             curr_node = curr_node->next;
 	    }
+
         }
          
-      // if (!strcmp(curr_node->label, header_in)) {
-       //    break;
-       //}
 	curr_list = curr_list->next;
     }
 
-    //printf("*d lookup_Pxi_value(): header found_header=%s not found\n", found_header);
     found_header=found_header;
     return 0;
 }
 
+/* From the PxiCi_folder_in's table which has P values for Ci_in, retrieve the probability where headder_in=xi_in */
+/* This function is similar to lookup_Pxi_value() */
+
 double lookup_PxiCi_value(folder *PxiCi_folder_in, char *header_in, char *xi_in, char *Ci_in) {
 
     table *curr_table = PxiCi_folder_in->head;
-	while (curr_table != NULL) {
-		if (!strcmp(curr_table->label, Ci_in)) {
-    list *curr_list = curr_table->head;
-    //printf("*d lookup_Pxi_value(): entering, header_in=%s, xi_in=%s\n", header_in, xi_in);
-    while (curr_list != NULL) {
-        list_node *curr_node = curr_list->head;
-        //printf("*d lookup_Pxi_value(): outer while(): (curr_list->head)->label=%s\n", (curr_list->head)->label);
-        while (curr_node != NULL) {
-           // printf("*d lookup_Pxi_value(): inner while(): curr_node->label=%s\n", curr_node->label);
-            /* Found the list in Pxi_table_in that begins with header_in */
-            if (!strcmp(curr_node->label, header_in)) {
-    //char *found_header=NULL; 
-//		found_header=curr_node->label;
-                //printf("*d lookup_Pxi_value(): header found, found_header=%s\n", found_header);
-		while (curr_node != NULL) {
-                    //printf("*d lookup_Pxi_value(): looking at curr_node->label=%s\n", curr_node->label);
-		    if(!strcmp(curr_node->label, xi_in)){
-                    //printf("*d lookup_Pxi_value(): found xi_in=%s  at curr_node->label=%s\n", xi_in, curr_node->label);
-	                return(curr_node->P);
-		    }
-			    
-		    curr_node = curr_node->next;
-		}
-	    } else {
-            curr_node = curr_node->next;
-	    }
-        }
+    /* Step through all tables with unique Ci_in values */
+    while (curr_table != NULL) {
+
+        /* When we find the table with Ci_in in it, step through it row by row */
+        if (!strcmp(curr_table->label, Ci_in)) {
+            list *curr_list = curr_table->head;
+
+	    /* Step through rows */
+            while (curr_list != NULL) {
+            list_node *curr_node = curr_list->head;
+
+	        /* Step through column values */ 
+                while (curr_node != NULL) {
+
+                    /* We found a column where the header is header_in */
+                    if (!strcmp(curr_node->label, header_in)) {
+                        
+                        /* Step through individual values in header_in column */
+		        while (curr_node != NULL) {
+
+                            /* when we find the value of xi_in in the table, return the probability P of it */
+		            if(!strcmp(curr_node->label, xi_in)){
+	                        return(curr_node->P);
+		            }
+		            curr_node = curr_node->next;
+	                }
+	            } else {
+                        curr_node = curr_node->next;
+	            }
+                }
          
-      // if (!strcmp(curr_node->label, header_in)) {
-       //    break;
-       //}
-	curr_list = curr_list->next;
+	        curr_list = curr_list->next;
+            }
+	}       
+        curr_table = curr_table->next;
     }
-		}       
-     curr_table = curr_table->next;
-	}
-    //printf("*d lookup_Pxi_value(): header found_header=%s not found\n", found_header);
-    //found_header=found_header;
     return 0;
 }
 
 
 /* Get a decisioned table with calculated values in it using the
  * Naive Bayes Classifier method */
-
+/* This is the worker function to generate the decisioned table based on the decisioning tables */
+/* Pxi_table_in is the table with individual Pxi values, 
+ * PxiCi_folder_in is the folder of tables of Pxi values for each Ci lalues for
+ * decisioning_table_in is the table for whose rows we need to decision the Ci output */
 table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table *decisioning_table_in) {
-    //printf("*d get_decisioned_table(): Entering\n");
     table *table_out = new_table();
 
-    //printf("*d get_decisioned_table() decisioning_table_in=\n"); print_table(decisioning_table_in); printf("\n");
-    //printf("*d get_decisioned_table() Pxi_table_in=\n"); print_table(Pxi_table_in); printf("\n");
-    //printf("*d get_decisioned_table() PxiCi_folder_in=\n"); print_folder(PxiCi_folder_in); printf("\n");
-
-                //double Pxi = lookup_Pxi_value(Pxi_table_in, "Play", "Y"); 
-                //printf("*d get_decisioned_table(): Pxi=%f\n", Pxi);
-		//
-		//
     /* For each value of the C, Ci compute the following !@#*/
     /* Copy the header row into header_list from decisioning_table_in */ 
     list *header_list = new_list();
     list_node *header_node_ptr = (decisioning_table_in->head)->head;
-    //insert_list_at_end(table_out, header_list);
+
+    /* Get the header row into the beginning of the decisioned table */
     while (header_node_ptr != NULL) {
         list_node *add_node; 
 	add_node = create_new_list_node(header_node_ptr->label);
         insert_node_at_end(header_list, add_node);
         header_node_ptr = header_node_ptr->next;
     }
-    /* Add decisioned column header */
+    /* Add a new column with a new header to decisioned output table */
     list_node *decisioned_value_node; 
     decisioned_value_node = create_new_list_node("Decision");
     insert_node_at_end(header_list, decisioned_value_node);
-
-    //printf("*d get_decisioned_table() header_list=\n"); print_list(header_list); printf("\n");
-
     insert_list_at_end(table_out, header_list);
+
+    /* Start from the second row of the decisioning table */
     list *curr_list = (decisioning_table_in->head)->next;
 
     /* Walk through the entire decisioning table values only, but not headers, see above line */
     while (curr_list != NULL) {
-	    /* Bayes statistic value for Play = N */
+	/* Initialize Bayes statistic value for Play = N */
 	double bayes_C1 = 1.0;
-	    /* Bayes statistic value for Play = Y */
+
+	/* Initialize Bayes statistic value for Play = Y */
 	double bayes_C2 = 1.0;
+
         list_node *curr_row_node = curr_list->head;
 	list_node *curr_head_node = header_list->head;
         	
         list *curr_decisioned_list = new_list();
-	/* Walk through the curren row of values and find the Pxi value for each, then append them one by one to a list*/
+	/* Walk through the current row of values in decsioning table the  and find the Pxi value for each, then append them one by one to a list */
         while (curr_row_node != NULL) {
 	    
 	    char *header_value = curr_head_node->label;
 	    char *field_value = curr_row_node->label;
-            //printf("*d get_decisioned_table(): inner while(): header_value=%s, xi=%s\n", header_value, field_value);
+	    /* Don't do this for the header row */
 	    if(strcmp(header_value, field_value)) {
                 double Pxi = lookup_Pxi_value(Pxi_table_in, header_value, field_value); 
-             //   printf("*d get_decisioned_table(): header_value=%s, xi=%s, Pxi=%f\n", header_value, field_value, Pxi);
 	        /* These can be improved to look at all values of the column where you see ?s in the decisioning table */
 		list_node *add_node = create_new_list_node(field_value);
+
                 /* Look up Pxi, Pxi|Ci and PCi values for this value */
 		double PxiCi_C1 = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, "N");
 		double PxiCi_C2 = lookup_PxiCi_value(PxiCi_folder_in, header_value, field_value, "Y");
-              //  printf("*d get_decisioned_table(): header_value=%s, xi=%s, PxiCi_C1=%f\n", header_value, field_value, PxiCi_C1);
-                //printf("*d get_decisioned_table(): header_value=%s, xi=%s, PxiCi_C2=%f\n", header_value, field_value, PxiCi_C2);
-		/* Need to get PCi and do the whole thing for all Ci's !@#*/
+
 		/* Compute PxiCi/Pxi for each field_value */
-		//add_node->P = PxiCi/Pxi;
 		insert_node_at_end(curr_decisioned_list, add_node);
 
 		/* Calculate the product of all PxiCi/Pxi for a row for both C1 and C2 (can be generalized in a loop if necessary, right now this works only with two (Y/N) Ci classes */
@@ -937,16 +897,20 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
             curr_row_node = curr_row_node->next;
             curr_head_node = curr_head_node->next;
         }
-                double PCi_C1 = lookup_Pxi_value(Pxi_table_in, "Play", "N"); 
-                double PCi_C2 = lookup_Pxi_value(Pxi_table_in, "Play", "Y"); 
-               // printf("*d get_decisioned_table(): Play=N, PCi=%f\n", PCi_C1);
-                //printf("*d get_decisioned_table(): Play=Y, PCi=%f\n", PCi_C2);
-		bayes_C1 = bayes_C1 * PCi_C1;
-		bayes_C2 = bayes_C2 * PCi_C2;
-            //printf("*d get_decisioned_table(): (curr_list->head)->label=%s, bayes_C1=%f\n", (curr_list->head)->label, bayes_C1);
-            //printf("*d get_decisioned_table(): (curr_list->head)->label=%s, bayes_C2=%f\n", (curr_list->head)->label, bayes_C2);
+
+	    /* Hardcoded the output column and its values */
+	    /* This could be improved such that we read '?'s from the decisioning table and use that to find the output column's name, then use all values of the header name from the training table */
+            double PCi_C1 = lookup_Pxi_value(Pxi_table_in, "Play", "N"); 
+            double PCi_C2 = lookup_Pxi_value(Pxi_table_in, "Play", "Y"); 
+
+	    /* This is the actual Bayes product */
+	    bayes_C1 = bayes_C1 * PCi_C1;
+	    bayes_C2 = bayes_C2 * PCi_C2;
+
 	    char *prediction = "";
 	    double bayes_final=0.0;
+
+	    /* The Ci with the highest value wins and gets written into the Decision column of the decisioned table as prediction/decision */
 	    if (bayes_C1 > bayes_C2) {
                 prediction = "N";
 		bayes_final = bayes_C1;
@@ -959,18 +923,15 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
                 prediction = "Y/N";
 		bayes_final = bayes_C1;
 	    }
-            //printf("*d get_decisioned_table(): (curr_list->head)->label=%s, prediction=%s\n", (curr_list->head)->label, prediction);
+
             list_node *prediction_node = create_new_list_node(prediction);
 	    prediction_node->P = bayes_final;
 	    insert_node_at_end(curr_decisioned_list, prediction_node);
 
-        //printf("\n");
 	 
 	insert_list_at_end(table_out, curr_decisioned_list);
         curr_list = curr_list->next;
     }
-    //list *Pi_Ci = new_list();
-    //free_list(header_list);
     return table_out;
 }
 
@@ -982,17 +943,15 @@ table * get_decisioned_table(table *Pxi_table_in, folder *PxiCi_folder_in, table
 
 void tokenize(list *list_in, char *str) {
 
-    //list *list_out = new_list();
     char *pt;
     list_node *node;
     pt = strtok (str,SEP);
+    /* Read the next token into a list */
     while (pt != NULL) {
         node = create_new_list_node(pt);
         insert_node_at_end (list_in, node);         /* insert name */
-        //printf("*d tokenize(): list_in="); print_list(list_in); printf("\n");
         pt = strtok (NULL, SEP);
     }   
-   // return list_out; 
 } 
 
 /* Read file line by line and store it into a table consiting dynamic lists e */
@@ -1028,11 +987,12 @@ void readfile(table *table_in, char *filename) {
     if (line)
         free(line);
 
-   //return table_in;
 }
 
 /* --- End file processing functions --- */
 
+
+/* --- Main function --- */
 int main (int argc, char *argv[]) {
     /* File name for the training data */
     char *training_file_name=argv[1]; 
@@ -1042,11 +1002,14 @@ int main (int argc, char *argv[]) {
     decisioning_file_name="decisioning.txt";
 
     /* --- Begin of reading in the training data --- */ 
+
     table *training_table = new_table();
     readfile(training_table, training_file_name);
-    /* End of reading in the training data */ 
 
- 
+    /* --- End of reading in the training data --- */ 
+
+    /* ----------------------------------------------- */
+
     /* --- Begin model training calculations --- */ 
 
     /* Cross link nodes in the training table so we can walk it vertically as well*/
@@ -1059,7 +1022,7 @@ int main (int argc, char *argv[]) {
     table *Pxi_table = new_table();
     create_Pxi_table(Pxi_table, training_table);
     add_label_to_table(Pxi_table, "Pxi_table");
-    //print_table(Pxi_table);
+
     /* Create, calculate and populate the Pxi table */
     folder *PxiCi_folder = new_folder();
   
@@ -1067,18 +1030,18 @@ int main (int argc, char *argv[]) {
     /* then for each header's each unique value */
     /* calculate probability values of P(xi|Ci) */
     PxiCi_folder = create_PxiCi_folder(training_table, "Play");
-    //print_folder(PxiCi_folder);
     
-    /* End of training */ 
- 
-    /* Begin of decisioning/classification */
+    /* --- End of model training calculations --- */ 
+
+    /* ----------------------------------------------- */
+
+    /* --- Begin of decisioning/classification --- */
 
     /* --- Begin of reading in the training data --- */ 
     table *decisioning_table = new_table();
+    /* Read the decisioning table file */
     readfile(decisioning_table, decisioning_file_name);
-    cross_link_nodes(decisioning_table); 
     add_label_to_table(decisioning_table, "decisioning_table");
-    //print_table(decisioning_table);
     /* End of reading in the training data */ 
      
     /* Begin of decisioning/classification */
@@ -1086,13 +1049,20 @@ int main (int argc, char *argv[]) {
     decisioned_table = get_decisioned_table(Pxi_table, PxiCi_folder, decisioning_table);
     add_label_to_table(decisioned_table, "decisioned_table");
     print_table(decisioned_table);
-    /* End of decisioning/classification */
 
+    /* --- End of decisioning/classification ---*/
+
+
+    /* ----------------------------------------------- */
+
+    /* --- Begin of cleanup --- */
     free_table (training_table);
     free_table (Pxi_table);     
     free_folder (PxiCi_folder);    
     free_table (decisioning_table); 
     free_table (decisioned_table); 
+    /* --- End of cleanup --- */
+
     return 0;
 }
 

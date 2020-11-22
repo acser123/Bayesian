@@ -1,0 +1,303 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+ no time accumulated
+
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  Ts/call  Ts/call  name    
+  0.00      0.00     0.00      773     0.00     0.00  create_new_list_node
+  0.00      0.00     0.00      400     0.00     0.00  insert_node_at_end
+  0.00      0.00     0.00      160     0.00     0.00  lookup_PxiCi_value
+  0.00      0.00     0.00      112     0.00     0.00  lookup_Pxi_value
+  0.00      0.00     0.00       93     0.00     0.00  new_list
+  0.00      0.00     0.00       64     0.00     0.00  free_list
+  0.00      0.00     0.00       64     0.00     0.00  insert_list_at_end
+  0.00      0.00     0.00       32     0.00     0.00  tokenize
+  0.00      0.00     0.00       17     0.00     0.00  print_list
+  0.00      0.00     0.00       10     0.00     0.00  get_uniques_with_criterion
+  0.00      0.00     0.00        7     0.00     0.00  new_table
+  0.00      0.00     0.00        6     0.00     0.00  free_table
+  0.00      0.00     0.00        6     0.00     0.00  get_uniques
+  0.00      0.00     0.00        6     0.00     0.00  retrieve_column
+  0.00      0.00     0.00        5     0.00     0.00  add_label_to_table
+  0.00      0.00     0.00        2     0.00     0.00  cross_link_nodes
+  0.00      0.00     0.00        2     0.00     0.00  insert_table_at_end
+  0.00      0.00     0.00        2     0.00     0.00  new_folder
+  0.00      0.00     0.00        2     0.00     0.00  readfile
+  0.00      0.00     0.00        1     0.00     0.00  create_PxiCi_folder
+  0.00      0.00     0.00        1     0.00     0.00  create_Pxi_table
+  0.00      0.00     0.00        1     0.00     0.00  free_folder
+  0.00      0.00     0.00        1     0.00     0.00  get_decisioned_table
+  0.00      0.00     0.00        1     0.00     0.00  print_table
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2020 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) no time propagated
+
+index % time    self  children    called     name
+                0.00    0.00      90/773         retrieve_column [14]
+                0.00    0.00     102/773         get_decisioned_table [23]
+                0.00    0.00     160/773         tokenize [8]
+                0.00    0.00     178/773         get_uniques_with_criterion [10]
+                0.00    0.00     243/773         get_uniques [13]
+[1]      0.0    0.00    0.00     773         create_new_list_node [1]
+-----------------------------------------------
+                0.00    0.00      19/400         get_uniques [13]
+                0.00    0.00      29/400         get_uniques_with_criterion [10]
+                0.00    0.00      90/400         retrieve_column [14]
+                0.00    0.00     102/400         get_decisioned_table [23]
+                0.00    0.00     160/400         tokenize [8]
+[2]      0.0    0.00    0.00     400         insert_node_at_end [2]
+-----------------------------------------------
+                0.00    0.00     160/160         get_decisioned_table [23]
+[3]      0.0    0.00    0.00     160         lookup_PxiCi_value [3]
+-----------------------------------------------
+                0.00    0.00     112/112         get_decisioned_table [23]
+[4]      0.0    0.00    0.00     112         lookup_Pxi_value [4]
+-----------------------------------------------
+                0.00    0.00       6/93          retrieve_column [14]
+                0.00    0.00       6/93          get_uniques [13]
+                0.00    0.00      10/93          get_uniques_with_criterion [10]
+                0.00    0.00      10/93          create_Pxi_table [21]
+                0.00    0.00      12/93          create_PxiCi_folder [20]
+                0.00    0.00      17/93          get_decisioned_table [23]
+                0.00    0.00      32/93          readfile [19]
+[5]      0.0    0.00    0.00      93         new_list [5]
+-----------------------------------------------
+                0.00    0.00      64/64          free_table [12]
+[6]      0.0    0.00    0.00      64         free_list [6]
+-----------------------------------------------
+                0.00    0.00       5/64          create_Pxi_table [21]
+                0.00    0.00      10/64          create_PxiCi_folder [20]
+                0.00    0.00      17/64          get_decisioned_table [23]
+                0.00    0.00      32/64          readfile [19]
+[7]      0.0    0.00    0.00      64         insert_list_at_end [7]
+-----------------------------------------------
+                0.00    0.00      32/32          readfile [19]
+[8]      0.0    0.00    0.00      32         tokenize [8]
+                0.00    0.00     160/773         create_new_list_node [1]
+                0.00    0.00     160/400         insert_node_at_end [2]
+-----------------------------------------------
+                0.00    0.00      17/17          print_table [24]
+[9]      0.0    0.00    0.00      17         print_list [9]
+-----------------------------------------------
+                0.00    0.00      10/10          create_PxiCi_folder [20]
+[10]     0.0    0.00    0.00      10         get_uniques_with_criterion [10]
+                0.00    0.00     178/773         create_new_list_node [1]
+                0.00    0.00      29/400         insert_node_at_end [2]
+                0.00    0.00      10/93          new_list [5]
+-----------------------------------------------
+                0.00    0.00       1/7           get_decisioned_table [23]
+                0.00    0.00       2/7           create_PxiCi_folder [20]
+                0.00    0.00       4/7           main [30]
+[11]     0.0    0.00    0.00       7         new_table [11]
+-----------------------------------------------
+                0.00    0.00       2/6           free_folder [22]
+                0.00    0.00       4/6           main [30]
+[12]     0.0    0.00    0.00       6         free_table [12]
+                0.00    0.00      64/64          free_list [6]
+-----------------------------------------------
+                0.00    0.00       1/6           create_PxiCi_folder [20]
+                0.00    0.00       5/6           create_Pxi_table [21]
+[13]     0.0    0.00    0.00       6         get_uniques [13]
+                0.00    0.00     243/773         create_new_list_node [1]
+                0.00    0.00      19/400         insert_node_at_end [2]
+                0.00    0.00       6/93          new_list [5]
+-----------------------------------------------
+                0.00    0.00       1/6           create_PxiCi_folder [20]
+                0.00    0.00       5/6           create_Pxi_table [21]
+[14]     0.0    0.00    0.00       6         retrieve_column [14]
+                0.00    0.00      90/773         create_new_list_node [1]
+                0.00    0.00      90/400         insert_node_at_end [2]
+                0.00    0.00       6/93          new_list [5]
+-----------------------------------------------
+                0.00    0.00       2/5           create_PxiCi_folder [20]
+                0.00    0.00       3/5           main [30]
+[15]     0.0    0.00    0.00       5         add_label_to_table [15]
+-----------------------------------------------
+                0.00    0.00       2/2           main [30]
+[16]     0.0    0.00    0.00       2         cross_link_nodes [16]
+-----------------------------------------------
+                0.00    0.00       2/2           create_PxiCi_folder [20]
+[17]     0.0    0.00    0.00       2         insert_table_at_end [17]
+-----------------------------------------------
+                0.00    0.00       1/2           create_PxiCi_folder [20]
+                0.00    0.00       1/2           main [30]
+[18]     0.0    0.00    0.00       2         new_folder [18]
+-----------------------------------------------
+                0.00    0.00       2/2           main [30]
+[19]     0.0    0.00    0.00       2         readfile [19]
+                0.00    0.00      32/93          new_list [5]
+                0.00    0.00      32/32          tokenize [8]
+                0.00    0.00      32/64          insert_list_at_end [7]
+-----------------------------------------------
+                0.00    0.00       1/1           main [30]
+[20]     0.0    0.00    0.00       1         create_PxiCi_folder [20]
+                0.00    0.00      12/93          new_list [5]
+                0.00    0.00      10/10          get_uniques_with_criterion [10]
+                0.00    0.00      10/64          insert_list_at_end [7]
+                0.00    0.00       2/7           new_table [11]
+                0.00    0.00       2/5           add_label_to_table [15]
+                0.00    0.00       2/2           insert_table_at_end [17]
+                0.00    0.00       1/2           new_folder [18]
+                0.00    0.00       1/6           retrieve_column [14]
+                0.00    0.00       1/6           get_uniques [13]
+-----------------------------------------------
+                0.00    0.00       1/1           main [30]
+[21]     0.0    0.00    0.00       1         create_Pxi_table [21]
+                0.00    0.00      10/93          new_list [5]
+                0.00    0.00       5/6           retrieve_column [14]
+                0.00    0.00       5/6           get_uniques [13]
+                0.00    0.00       5/64          insert_list_at_end [7]
+-----------------------------------------------
+                0.00    0.00       1/1           main [30]
+[22]     0.0    0.00    0.00       1         free_folder [22]
+                0.00    0.00       2/6           free_table [12]
+-----------------------------------------------
+                0.00    0.00       1/1           main [30]
+[23]     0.0    0.00    0.00       1         get_decisioned_table [23]
+                0.00    0.00     160/160         lookup_PxiCi_value [3]
+                0.00    0.00     112/112         lookup_Pxi_value [4]
+                0.00    0.00     102/773         create_new_list_node [1]
+                0.00    0.00     102/400         insert_node_at_end [2]
+                0.00    0.00      17/93          new_list [5]
+                0.00    0.00      17/64          insert_list_at_end [7]
+                0.00    0.00       1/7           new_table [11]
+-----------------------------------------------
+                0.00    0.00       1/1           main [30]
+[24]     0.0    0.00    0.00       1         print_table [24]
+                0.00    0.00      17/17          print_list [9]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2020 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+  [15] add_label_to_table     [23] get_decisioned_table   [18] new_folder
+  [20] create_PxiCi_folder    [13] get_uniques             [5] new_list
+  [21] create_Pxi_table       [10] get_uniques_with_criterion [11] new_table
+   [1] create_new_list_node    [7] insert_list_at_end      [9] print_list
+  [16] cross_link_nodes        [2] insert_node_at_end     [24] print_table
+  [22] free_folder            [17] insert_table_at_end    [19] readfile
+   [6] free_list               [3] lookup_PxiCi_value     [14] retrieve_column
+  [12] free_table              [4] lookup_Pxi_value        [8] tokenize
