@@ -59,45 +59,37 @@ list *new_list(void) {
     return list_out;
 }
 
-/* create new dynamically allocated node, initialize all values */
-list_node *create_new_list_node (const char *label)
-{
-    list_node *node_out = NULL;
-
-    if (!label) {    /* validate label not NULL */
-        fputs ("error: label is NULL in create_new_node.\n", stderr);
+/* Create a new dynamically allocated node and initialize all its values.
+   This function ensures that all fields of the list_node struct are properly
+   initialized to prevent uninitialized value errors.
+   - label: The string label for the node.
+   - returns: A pointer to the newly created list_node, or NULL on failure.
+*/
+list_node *create_new_list_node(const char *label) {
+    if (!label) {
+        fputs("error: label is NULL in create_new_list_node.\n", stderr);
         return NULL;
     }
 
-    node_out = malloc (sizeof (struct list_node));   /* allocate/validate node */
+    list_node *node_out = malloc(sizeof(list_node));
     if (!node_out) {
-        perror ("malloc-new_node");
+        perror("malloc-new_node");
         return NULL;
     }
 
-
-    /* allocate/validate storage for label */
-
-    if (!(node_out->label = malloc (strlen (label) + 1))) {
-        perror ("malloc-node_out->label");
-        free (node_out);
+    node_out->label = malloc(strlen(label) + 1);
+    if (!node_out->label) {
+        perror("malloc-node_out->label");
+        free(node_out);
         return NULL;
-    } 
+    }
+    strcpy(node_out->label, label);
 
-    /* copy data to node_out->data */
-    strcpy (node_out->label, label);
+    node_out->count = 0;
+    node_out->P = 0.0;
+    node_out->next = NULL;
+    node_out->next_v = NULL;
 
-    /* Initialize the non-pointers */
-    node_out->count = 0;  
-    node_out->P = 0;
-
-    /* set next pointer NULL */
-    node_out->next = NULL;         
-
-    /* set next_v pointer NULL */
-    node_out->next_v = NULL;         
- 
-    /* return pointer to new_node */
     return node_out;
 }
 
@@ -214,14 +206,17 @@ table *new_table(void) {
    return table_out;
 }
 
-void add_label_to_table(table *table_in, const char *label){
-    /* allocate/validate storage for label */
-
-    if (!(table_in->label = malloc (strlen (label) + 1))) {
-       perror ("malloc-table_in->label");
-       free (table_in);
-       return;
-    } 
+/* Add a label to a table. This function is now safer and avoids a double-free vulnerability. */
+void add_label_to_table(table *table_in, const char *label) {
+    if (!label) {
+        table_in->label = NULL;
+        return;
+    }
+    table_in->label = malloc(strlen(label) + 1);
+    if (!table_in->label) {
+        perror("malloc-table_in->label");
+        return; /* Avoid freeing the table here, which could lead to a double-free. */
+    }
     strcpy(table_in->label, label);
 }
 /* insert new list at front returning pointer to head
@@ -253,14 +248,19 @@ void insert_list_at_end (table *table_in, list *mylist_in) {
 
 
 
-/* you are responsible for freeing any memory you allocate */
-void free_table (table *table_in)
-{ list *current = table_in->head; while (current) {
+/* Safely free a table, including its label and all lists within it. */
+void free_table(table *table_in) {
+    if (!table_in) {
+        return;
+    }
+    list *current = table_in->head;
+    while (current) {
         list *victim = current;
         current = current->next;
-        free_list (victim);
+        free_list(victim);
     }
-    free (table_in);
+    free(table_in->label);
+    free(table_in);
 }
 
 /* --- End of table functions --- */
@@ -308,14 +308,17 @@ void insert_table_at_end (folder *folder_in, table *table_in)
 }
 
 
-void add_label_to_folder(folder *folder_in, const char *label){
-    /* allocate/validate storage for label */
-
-    if (!(folder_in->label = malloc (strlen (label) + 1))) {
-       perror ("malloc-folder_in->label");
-       free (folder_in);
-       return;
-    } 
+/* Add a label to a folder, ensuring safety against double-frees. */
+void add_label_to_folder(folder *folder_in, const char *label) {
+    if (!label) {
+        folder_in->label = NULL;
+        return;
+    }
+    folder_in->label = malloc(strlen(label) + 1);
+    if (!folder_in->label) {
+        perror("malloc-folder_in->label");
+        return; /* Avoid freeing the folder here */
+    }
     strcpy(folder_in->label, label);
 }
 
@@ -333,15 +336,19 @@ void print_folder (folder *folder_in)
 }
 
 
-/* you are responsible for freeing any memory you allocate */
-void free_folder (folder *folder_in) { 
-    table *current = folder_in->head; 
+/* Safely free a folder, its label, and all tables within it. */
+void free_folder(folder *folder_in) {
+    if (!folder_in) {
+        return;
+    }
+    table *current = folder_in->head;
     while (current) {
         table *victim = current;
         current = current->next;
-        free_table (victim);
+        free_table(victim);
     }
-    free (folder_in);
+    free(folder_in->label);
+    free(folder_in);
 }
 
 
@@ -436,80 +443,61 @@ list * retrieve_column (table *table_in, const char *header_in) {
     return list_out; 
 }
 
-/* Get unique values of values from a list with counts and probabilities */
-list * get_uniques(list *list_in) {
-
+/* Get unique values from a list, along with their counts and probabilities.
+   This function is memory-safe and avoids leaks by only allocating new nodes
+   when a unique label is discovered.
+   - list_in: The input list to process.
+   - returns: A new list containing unique nodes with counts and probabilities.
+*/
+list *get_uniques(list *list_in) {
     list *unique_list_out = new_list();
-
-    /* We will advance this pointer */   
     list_node *curr_node = list_in->head;
 
+    if (!curr_node) {
+        return unique_list_out; /* Return empty list if input is empty */
+    }
 
-    /* The first node label is unique for sure so we initialize the unique list */
+    /* The first node is the header, add it to the unique list */
     list_node *unique_list_node = create_new_list_node(curr_node->label);
     unique_list_node->count++;
     insert_node_at_end(unique_list_out, unique_list_node);
-    
-    /* Step to the second item on the current node */
-    curr_node = curr_node->next; 
+    curr_node = curr_node->next;
 
-    /* We already looked at the first row */
-    int numrows=1; 
+    int numrows = 1;
 
-    /* Step through nodes of the list_in */
+    /* Step through the rest of the nodes in the list */
     while (curr_node != NULL) {
         numrows++;
-
-        /* Go the beginning of the unique list */
         unique_list_node = unique_list_out->head;
+        int found = 0;
 
-        int found=0;
-        /* We need to remember what we need to add to unique list */
-        list_node *add_node;
-
-        /* Step through unique list */
-        while (unique_list_node != NULL) { 
-
-            /* If unique list contains the current node, set found to 1 
-               so that we don't add it after having finished with the unique list */
-            if ((strcmp(unique_list_node->label, curr_node->label) == 0)) {
-
-                add_node = create_new_list_node(curr_node->label);
-
-                /* Need to increase the count of times we found this node */
+        /* Check if the current node's label is already in our unique list */
+        while (unique_list_node != NULL) {
+            if (strcmp(unique_list_node->label, curr_node->label) == 0) {
                 unique_list_node->count++;
-                /* Set found flag so we are sure to not add this node to uniques */
                 found = 1;
-
-            } else {
-                /* Need to remember what we're adding below, otherwise we dump core below */ 
-                add_node = create_new_list_node(curr_node->label);
+                break; /* Found, no need to check further */
             }
             unique_list_node = unique_list_node->next;
         }
 
-        /* If we have not found the current on the unique list, then add the current node to the unique list */
-        if (found==0)  { 
+        /* If the label was not found in the unique list, add it as a new node */
+        if (!found) {
+            list_node *add_node = create_new_list_node(curr_node->label);
             add_node->count++;
             insert_node_at_end(unique_list_out, add_node);
-            found=1;
-        } 
+        }
 
-        /* Step to examine the next node */
-        curr_node = curr_node->next; 
+        curr_node = curr_node->next;
     }
 
-
     /* Calculate and populate probabilities */
-    list_node *current = unique_list_out->head; 
-
-    /*  Step through unique_list_out */
+    list_node *current = unique_list_out->head;
     while (current != NULL) {
-
-        /* Calculate probability for each unique value, subtract one from number of rows since also counted the header row */
-        current->P = (current->count) / ((double) numrows - 1); 
-
-        /* Step to calculate P for the next node */
+        /* Subtract 1 from numrows for the header row */
+        if (numrows > 1) {
+            current->P = (current->count) / ((double)numrows - 1);
+        }
         current = current->next;
     }
 
@@ -518,131 +506,88 @@ list * get_uniques(list *list_in) {
 
 
 
-/* Return a list (column) of uniques with probabilities and counts where header_name_in=header_criterion_in  and where the value is field_value_in*/
-/* This function follows the same logic as get_uniques() */
-
-list * get_uniques_with_criterion(table *table_in, const char *examine_header_in, const char *header_name_in, const char *field_value_in) {
-
-    /* We will advance this pointer */   
-    list *curr_list = table_in->head;
-    list_node *curr_node = curr_list->head;
-
-    int curr_column_count = 0, crit_column_num = 0, examine_column_num = 0;
-
-    while (curr_node != NULL) {
-        curr_column_count++;
-        if (strcmp(curr_node->label, header_name_in) == 0) {
-            crit_column_num = curr_column_count;
-        }
-        curr_node = curr_node->next;
-    }
- 
+/* Finds unique values and their probabilities for a specific column, based on a criterion in another column.
+   This function is memory-safe and more efficient than its predecessor.
+   - table_in: The table containing the data.
+   - examine_header_in: The header of the column to analyze for unique values.
+   - header_name_in: The header of the column to use for the criterion.
+   - field_value_in: The value to match in the criterion column.
+   - returns: A list of unique values with their counts and probabilities.
+*/
+list *get_uniques_with_criterion(table *table_in, const char *examine_header_in, const char *header_name_in, const char *field_value_in) {
     list *unique_list_out = new_list();
-
-
-    /* The first node label is the header value and it is unique for sure so we initialize the unique list */
-
-
-    /* This is the columns where we want to find uniques, counts and P's for        only those rows where header_name_in=field_value_in */ 
-    curr_node = curr_list->head;
-    curr_column_count=0;
-    while (curr_node != NULL) {
-        curr_column_count++;
-        if (strcmp(curr_node->label, examine_header_in) == 0) {
-            examine_column_num = curr_column_count;
-        }
-        curr_node = curr_node->next;
-    }
-    /* Set curr_node to the examine_column_num'th column */
-    curr_node = curr_list->head;
-    int j=1;
-    while (curr_node != NULL && j<examine_column_num ) {
-        j++;
-        curr_node = curr_node->next;
+    if (!table_in || !table_in->head) {
+        return unique_list_out;
     }
 
-    list_node *unique_list_node = create_new_list_node(curr_node->label);
-    unique_list_node->count++;
-    insert_node_at_end(unique_list_out, unique_list_node);
-    
-    /* Step to the second item on the current node */
-    curr_list = curr_list->next;
-    curr_node = curr_node->next_v; 
+    list_node *header_row = table_in->head->head;
+    list_node *examine_col_head = NULL;
+    list_node *criterion_col_head = NULL;
 
-    /* We already looked at the first row */
-    int numrows=1; 
-
-    /* Step through nodes of the list_in */
-    while (curr_node != NULL) {
-
-        /* Only process the line if header_name_in column field matches the field_value_in */
-
-        /* Step horizontally crit_column_num times to find the header_name_in vaalue */
-        list_node *node_ptr = curr_list->head;
-        int i=1;
-        while (node_ptr != NULL && i<crit_column_num ) {
-            i++;
-            node_ptr = node_ptr->next;
+    /* Find the starting nodes for the columns we are interested in */
+    for (list_node *h = header_row; h != NULL; h = h->next) {
+        if (strcmp(h->label, examine_header_in) == 0) {
+            examine_col_head = h;
         }
-        /* Found it */
-        if(strcmp(field_value_in, node_ptr->label)==0) { 
-            
-            numrows++;
+        if (strcmp(h->label, header_name_in) == 0) {
+            criterion_col_head = h;
+        }
+    }
 
-            /* Go the beginning of the unique list */
-            unique_list_node = unique_list_out->head;
-            /* Clear flag */
-            int found=0;
+    if (!examine_col_head || !criterion_col_head) {
+        /* One of the headers was not found */
+        return unique_list_out;
+    }
 
-            /* We need to remember what we need to add to unique list */
-            list_node *add_node;
+    /* Add the header of the examined column to the unique list */
+    list_node *unique_header_node = create_new_list_node(examine_col_head->label);
+    unique_header_node->count++;
+    insert_node_at_end(unique_list_out, unique_header_node);
 
-            /* Step through unique list */
-            while (unique_list_node != NULL) { 
+    list_node *examine_node = examine_col_head->next_v;
+    list_node *criterion_node = criterion_col_head->next_v;
+    int matching_rows = 0;
 
-                /* If unique list contains the current node, set found to 1 
-               so that we don't add it after having finished with the unique list */
-                if ((strcmp(unique_list_node->label, curr_node->label) == 0)) {
+    /* Iterate through the rows of the table */
+    while (examine_node != NULL && criterion_node != NULL) {
+        if (strcmp(criterion_node->label, field_value_in) == 0) {
+            matching_rows++;
+            list_node *unique_list_node = unique_list_out->head;
+            int found = 0;
 
-                    add_node = create_new_list_node(curr_node->label);
-
-                    /* Need to increase the count of times we found this node */
+            /* Check if the value from the examine_node is already in our unique list */
+            while (unique_list_node != NULL) {
+                if (strcmp(unique_list_node->label, examine_node->label) == 0) {
                     unique_list_node->count++;
-                    /* Set found flag so we are sure to not add this node to uniques */
                     found = 1;
-
-                } else {
-                    /* Need to remember what we're adding below, otherwise we dump core below */ 
-                    add_node = create_new_list_node(curr_node->label);
+                    break;
                 }
                 unique_list_node = unique_list_node->next;
-             } /* while(unique_list_node != NULL) */
+            }
 
-             /* If we have not found the current on the unique list, then add the current node to the unique list */
-             if (found==0)  { 
-                 add_node->count++;
-                 insert_node_at_end(unique_list_out, add_node);
-                 found=1;
-             } 
-          } /* strcmp() */
-          /* Step to examine the next node */
-          curr_node = curr_node->next_v; 
-          curr_list = curr_list->next;
+            /* If not found, add a new node for it */
+            if (!found) {
+                list_node *add_node = create_new_list_node(examine_node->label);
+                add_node->count++;
+                insert_node_at_end(unique_list_out, add_node);
+            }
+        }
+        examine_node = examine_node->next_v;
+        criterion_node = criterion_node->next_v;
     }
 
-
-    /* Calculate and populate probabilities */
-    list_node *current = unique_list_out->head; 
-
-    /*  Step through unique_list_out */
-    while (current != NULL) {
-
-        /* Calculate probability for each unique value, subtract one from number of rows since also counted the header row */
-	/* Need to convert numrows to double, otherwise the result is incorrect */
-        current->P = (current->count) / ((double) numrows - 1); 
-
-        /* Step to calculate P for the next node */
-        current = current->next;
+    /* Calculate probabilities, skipping the header node */
+    list_node *current_prob = unique_list_out->head;
+    if (current_prob) {
+        current_prob = current_prob->next; /* Skip header */
+    }
+    while (current_prob != NULL) {
+        if (matching_rows > 0) {
+            current_prob->P = (double)current_prob->count / matching_rows;
+        } else {
+            current_prob->P = 0.0;
+        }
+        current_prob = current_prob->next;
     }
 
     return unique_list_out;
@@ -673,82 +618,50 @@ void create_Pxi_table(table *table_out, table *table_in){
     }
 }
 
-/*  Create folder of tables of PxiCi values, i.e. probabilities of each unique xi (denoted Pxi) when Ci is of a value for each value of C */
-/* For example, calculate counts and probabilities for each unique value of Outlook for only those rows where Play=Y */
-folder * create_PxiCi_folder(table *training_table_in, char *Cname_in) {
+/* Create a folder of tables containing P(xi|Ci) values.
+   For each unique value of the class variable (Ci), this function calculates
+   the conditional probabilities for all other features. This is a core part
+   of training the Naive Bayes model.
+   - training_table_in: The table with training data.
+   - Cname_in: The name of the class variable.
+   - returns: A folder containing tables of conditional probabilities.
+*/
+folder *create_PxiCi_folder(table *training_table_in, char *Cname_in) {
     folder *folder_out = new_folder();
 
+    /* First, get the unique values of the class variable */
+    list *C_column = retrieve_column(training_table_in, Cname_in);
+    if (!C_column) {
+        return folder_out; /* Class variable not found */
+    }
+    list *Ci_list = get_uniques(C_column);
+    free_list(C_column); /* C_column is no longer needed */
 
-/* 
-   Pseudocode:
-
-   Find out unique values for Cname_in
-   For each unique value of Ci of Cname_in 
-    Generate a table of Ps for each Xi value for each X
-    Add table to the folder
-  Return the folder 
-*/
-
-   
-    /* Go row by row of the training_table_in */ 
-    list *curr_list = training_table_in->head;
-    list_node *curr_node = curr_list->head;
-    list *Ci_list = new_list();
-    
-    while (curr_node != NULL) {
-
-        /* When we find Cname in in the headers, perform the whole sequence of creating uniques and then creating a table of Ps */
-        if(!strcmp(curr_node->label, Cname_in)) {
-
-            /* Get the column for Cname_in */
-            list *C_list = new_list();
-            C_list = retrieve_column(training_table_in, Cname_in);
-
-            /* Get unique values on C_list */
-            Ci_list = get_uniques(C_list);
-
-        }
-        curr_node = curr_node->next;
+    if (!Ci_list || !Ci_list->head) {
+        if (Ci_list) free_list(Ci_list);
+        return folder_out;
     }
 
-    
+    /* For each unique value of the class variable (e.g., "Y" or "N"), create a table */
+    list_node *c_val_node = Ci_list->head->next; /* Skip header */
+    while (c_val_node != NULL) {
+        table *Ci_table = new_table();
+        add_label_to_table(Ci_table, c_val_node->label);
 
-   
-    /* For each non-header value on the Ci_list (e.g. "Y", or "N"), generate Ps for all headers' all values and store them into individual tables which you then link into a folder */
-
-    /* Skip the header */
-   
-    list_node *curr2_node = (Ci_list->head)->next;
-
-    while (curr2_node != NULL) {
-        /* Table to hold the values for all Ci */
-        table *Ci_table =  new_table();   
-        
-        add_label_to_table(Ci_table, curr2_node->label);
-
-        list *curr2_list = training_table_in->head;
-        list_node *header_ptr_node = curr2_list->head;
-
-
-        /* Get all headers */       
+        list_node *header_ptr_node = training_table_in->head->head;
         while (header_ptr_node != NULL) {
-             
-            list *counts_list = new_list();
-
-            counts_list = get_uniques_with_criterion(training_table_in, header_ptr_node->label, Cname_in, curr2_node->label);
-
-           
+            /* For each feature, get uniques with the class criterion */
+            list *counts_list = get_uniques_with_criterion(training_table_in, header_ptr_node->label, Cname_in, c_val_node->label);
             insert_list_at_end(Ci_table, counts_list);
-            header_ptr_node = header_ptr_node->next; 
+            header_ptr_node = header_ptr_node->next;
         }
 
         insert_table_at_end(folder_out, Ci_table);
-        curr2_node = curr2_node->next;
-    } 
-      
-  
-    return folder_out;
+        c_val_node = c_val_node->next;
+    }
 
+    free_list(Ci_list); /* Clean up the list of unique class values */
+    return folder_out;
 }
 
 
